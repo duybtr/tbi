@@ -71,6 +71,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'helloworld', #new
+    'transactions', #new
+    'accounts', #new
 ]
 
 MIDDLEWARE = [
@@ -88,7 +90,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [str(BASE_DIR.joinpath('templates'))], #new
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -170,6 +172,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
