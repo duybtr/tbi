@@ -1,7 +1,7 @@
 # transactions/tests.py
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse, resolve # new
-from .views import HomePageView # new
+from .views import HomePageView, statement_upload, transaction_list# new
 
 class HomepageTests(SimpleTestCase):
 
@@ -30,4 +30,42 @@ class HomepageTests(SimpleTestCase):
         self.assertEqual(
             view.func.__name__,
             HomePageView.as_view().__name__
+        )
+
+class CsvUploadTests(SimpleTestCase):  
+
+    def setUp(self):
+        url = reverse('upload_csv')
+        self.response = self.client.get(url)
+
+    def test_csvupload_url(self):
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_csvupload_template(self):
+        self.assertTemplateUsed(self.response, 'transactions/statement_upload.html')
+    
+    def test_csvupload_url_resolves_statementuploadview(self):
+        view = resolve('/upload_csv/')  
+        self.assertEqual(
+            view.func.__name__,
+            statement_upload.__name__
+        )
+
+class TransactionListTests(TestCase):  
+
+    def setUp(self):
+        url = reverse('transaction_list')
+        self.response = self.client.get(url)
+
+    def test_transactionlist_url(self):
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_transactionlist_template(self):
+        self.assertTemplateUsed(self.response, 'transactions/transaction_list.html')
+    
+    def test_transactionlist_url_resolves_transactionlistview(self):
+        view = resolve('/list_transactions/')  
+        self.assertEqual(
+            view.func.__name__,
+            transaction_list.__name__
         )
