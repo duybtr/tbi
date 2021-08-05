@@ -2,13 +2,17 @@ from django.db import models
 
 # Create your models here.
 class Transaction(models.Model):
-    stmt_date = models.DateField()
-    stmt_account_last4 = models.CharField(max_length=4)
-    stmt_description = models.CharField(max_length=500)
-    stmt_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    transaction_date = models.DateField()
+    account_number = models.CharField(max_length=4)
+    statement_type = models.CharField(max_length=20)
+    transaction_description = models.TextField(max_length=500)
+    transaction_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    document_image = models.FileField()
+    is_verified = models.BooleanField()
+    accounting_classification = models.CharField(max_length=20)
     
     def __str__(self):
-        return self.description
+        return self.transaction_description
 
 class Profile(models.Model):
     name = models.CharField(max_length=150)
