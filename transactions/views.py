@@ -4,14 +4,16 @@ from django.views.generic import TemplateView
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction
-from .forms import StatementUploadForm
+from .models import Transaction, Expense
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import UpdateView, CreateView
+from google.cloud import storage
 import logging
 import datetime
 
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 class HomePageView(TemplateView):
     template_name = 'home.html'
@@ -27,7 +29,7 @@ def convert_decimal(amount):
     return amount
 
 def statement_upload(request):
-    logging.basicConfig(filename='example.log', level=logging.DEBUG)
+    
     # declaring template
     template = 'transactions/statement_upload.html'
     
@@ -83,15 +85,42 @@ def transaction_list(request):
     context = {'transactions': data }
     return render(request, template, context)
 
+# If running locally, be sure to authenticate first. 
+# gcloud auth application-default login
+def store_in_gcs(file, bucket_path):
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_path)
+    blob = bucket.blob(file.name)
+    blob.upload_from_file(file)
+
 class TransactionUpdateView(UpdateView):
     model = Transaction 
     form_class = TransactionUpdateForm
-    fields = '__all__'
     template_name = 'transactions/transaction_edit.html'
     success_url = reverse_lazy('transaction_list')
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        form.send_email()
+        #logging.info(form.document_image)
+        store_in_gcs(form.files['document_image'], 'tbi_document_images')
+        #logging.info([[k,v] for k, values in form.files['tbi-document-image'].items() for v in values])
         return super().form_valid(form)
+
+class CreateExpenseView(CreateView):
+    model = Expense
+    form_class = CreateExpenseForm
+    template_name = 'transactions/create_expense.html'
+    success_url = reverse_lazy('transaction_list')
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        if form.is_valid():
+            # <process form cleaned data>
+            store_in_gcs(form.files['invoice_image'], 'tbi_document_images')
+            return HttpResponseRedirect(self.success_url)    
+        return render(request, self.template_name, {'form': form})

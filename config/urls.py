@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from testcsv.views import profile_upload
+
 
 urlpatterns = [
     # Django admin
@@ -27,7 +27,5 @@ urlpatterns = [
     # Local apps
     path('', include('transactions.urls')),
 
-    # Test csv
-    #path('upload_csv/', profile_upload, name="test_csv")
-    #path('', include('testcsv.urls')),
+   
 ]
