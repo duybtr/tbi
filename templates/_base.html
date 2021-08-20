@@ -21,6 +21,8 @@
         <a class="p-2 text-dark" href="{% url 'about' %}">About</a>
         <a class="p-2 text-dark" href="{% url 'upload_csv' %}">Upload a statement</a>
         <a class="p-2 text-dark" href="{% url 'upload_invoice' %}">Upload an invoice</a>
+        <a class="p-2 text-dark" href="{% url 'expense_list' %}">View Expenses</a>
+        <a class="p-2 text-dark" href="{% url 'transaction_list' %}">View Transactions</a>
         {% if user.is_authenticated %}
           <a class="p-2 text-dark" href="{% url 'logout' %}">Log Out</a>
         {% else %}

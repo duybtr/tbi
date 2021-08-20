@@ -1,0 +1,31 @@
+{% extends '_base.html' %}
+
+{% block content %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Expense Date</th>
+        <th scope="col">Address</th>
+        <th scope="col">Expense Type</th>
+        <th scope="col">Expense Amount</th>
+        <th scope="col">Invoice Image</th>
+        <th scope="col">Note </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for expense in object_list %}
+      <tr>
+        <td>{{ expense.expense_date }}</td>
+        <td>{{ expense.address }}</td>
+        <td>{{ expense.expense_type }}</td>
+        <td>{{ expense.amount }}</td>
+        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
+        <td>{{ expense.note }}</td>
+        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+     </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock content %}

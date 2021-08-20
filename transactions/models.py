@@ -33,6 +33,8 @@ class Rental_Unit(models.Model):
         return '{} {}'.format(self.address, self.suite)
 
 class Expense(models.Model):
+    GCS_ROOT_BUCKET = 'tbi-document-images'
+
     expense_date = models.DateField()
     address = models.ForeignKey(
         Property,
@@ -55,3 +57,6 @@ class Expense(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     invoice_image = models.FileField()
     note = models.TextField(max_length = 500)
+
+    def display_full_path_to_gcs(self):
+        return 'https://storage.cloud.google.com/tbi_document_images/{}'.format(self.invoice_image.name)

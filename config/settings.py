@@ -73,7 +73,7 @@ INSTALLED_APPS = [
     'helloworld', #new
     'transactions', #new
     'accounts', #new
-    'testcsv', #new #testing
+
     
 ]
 

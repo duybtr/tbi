@@ -9,6 +9,7 @@ from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic import ListView
 from google.cloud import storage
 import logging
 import datetime
@@ -89,9 +90,13 @@ def transaction_list(request):
 # gcloud auth application-default login
 def store_in_gcs(file, bucket_path):
     client = storage.Client()
+    logging.info(client)
     bucket = client.get_bucket(bucket_path)
+    logging.info(bucket)
     blob = bucket.blob(file.name)
+    logging.info(blob)
     blob.upload_from_file(file)
+    logging.info('File {} uploaded'.format(file))
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -102,16 +107,14 @@ class TransactionUpdateView(UpdateView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        #logging.info(form.document_image)
         store_in_gcs(form.files['document_image'], 'tbi_document_images')
-        #logging.info([[k,v] for k, values in form.files['tbi-document-image'].items() for v in values])
         return super().form_valid(form)
 
 class CreateExpenseView(CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_expense.html'
-    success_url = reverse_lazy('transaction_list')
+    success_url = reverse_lazy('expense_list')
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)
@@ -120,7 +123,20 @@ class CreateExpenseView(CreateView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
-            # <process form cleaned data>
-            store_in_gcs(form.files['invoice_image'], 'tbi_document_images')
+            form.save()
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
+    
+    def form_valid(self, form):
+        store_in_gcs(form.files['invoice_image'], 'tbi_document_images')
+        return super().form_valid(form)
+
+class ExpenseListView(ListView):
+    model = Expense
+    template_name = 'transactions/expense_list.html'
+
+class ExpenseUpdateView(UpdateView):
+    model = Expense
+    form_class = CreateExpenseForm
+    template_name = 'transactions/expense_edit.html'
+    success_url = reverse_lazy('expense_list')
