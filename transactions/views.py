@@ -13,6 +13,8 @@ from django.views.generic import ListView
 from google.cloud import storage
 import logging
 import datetime
+import os
+from django.conf import settings
 
 logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
@@ -89,11 +91,13 @@ def transaction_list(request):
 # If running locally, be sure to authenticate first. 
 # gcloud auth application-default login
 def store_in_gcs(file, bucket_path):
+    logging.info('Class of file object {}'.format(file.__class__))
     client = storage.Client()
     logging.info(client)
     bucket = client.get_bucket(bucket_path)
     logging.info(bucket)
-    blob = bucket.blob(file.name)
+    generated_filename = file.name.replace(' ', '_')
+    blob = bucket.blob(generated_filename)
     logging.info(blob)
     blob.upload_from_file(file)
     logging.info('File {} uploaded'.format(file))
@@ -122,14 +126,14 @@ class CreateExpenseView(CreateView):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
+        
         if form.is_valid():
+            expense_model = form.save(commit=False)
+            store_in_gcs(expense_model.invoice_image, 'tbi_document_images')
             form.save()
+            os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.invoice_image.name))
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
-    
-    def form_valid(self, form):
-        store_in_gcs(form.files['invoice_image'], 'tbi_document_images')
-        return super().form_valid(form)
 
 class ExpenseListView(ListView):
     model = Expense

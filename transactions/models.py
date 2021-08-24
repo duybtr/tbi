@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 class Transaction(models.Model):
     transaction_date = models.DateField()
@@ -55,8 +56,13 @@ class Expense(models.Model):
     )
     expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
+
     invoice_image = models.FileField()
     note = models.TextField(max_length = 500)
 
+
     def display_full_path_to_gcs(self):
         return 'https://storage.cloud.google.com/tbi_document_images/{}'.format(self.invoice_image.name)
+    
+    
+
