@@ -1,5 +1,5 @@
 from django.db import models
-
+from common.utils import format_for_storage
 
 # Create your models here.
 class Transaction(models.Model):
@@ -34,7 +34,7 @@ class Rental_Unit(models.Model):
         return '{} {}'.format(self.address, self.suite)
 
 class Expense(models.Model):
-    GCS_ROOT_BUCKET = 'tbi-document-images'
+    GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
     expense_date = models.DateField()
     address = models.ForeignKey(
@@ -60,9 +60,13 @@ class Expense(models.Model):
     invoice_image = models.FileField()
     note = models.TextField(max_length = 500)
 
-
     def display_full_path_to_gcs(self):
-        return 'https://storage.cloud.google.com/tbi_document_images/{}'.format(self.invoice_image.name)
+        formatted_address = format_for_storage(self.address.address)
+        year = self.expense_date.year
+        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_expense_folder(), self.invoice_image.name)
     
-    
+    def get_expense_folder(self):
+        formatted_address = format_for_storage(self.address.address)
+        year = self.expense_date.year
+        return '{}/{}/{}'.format(formatted_address, 'invoices', year)
 

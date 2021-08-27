@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView
 from django.views.generic import ListView
+from common.utils import store_in_gcs
 from google.cloud import storage
 import logging
 import datetime
@@ -88,19 +89,7 @@ def transaction_list(request):
     context = {'transactions': data }
     return render(request, template, context)
 
-# If running locally, be sure to authenticate first. 
-# gcloud auth application-default login
-def store_in_gcs(file, bucket_path):
-    logging.info('Class of file object {}'.format(file.__class__))
-    client = storage.Client()
-    logging.info(client)
-    bucket = client.get_bucket(bucket_path)
-    logging.info(bucket)
-    generated_filename = file.name.replace(' ', '_')
-    blob = bucket.blob(generated_filename)
-    logging.info(blob)
-    blob.upload_from_file(file)
-    logging.info('File {} uploaded'.format(file))
+
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -129,7 +118,7 @@ class CreateExpenseView(CreateView):
         
         if form.is_valid():
             expense_model = form.save(commit=False)
-            store_in_gcs(expense_model.invoice_image, 'tbi_document_images')
+            store_in_gcs(expense_model.invoice_image, expense_model.GCS_ROOT_BUCKET, expense_model.get_expense_folder())
             form.save()
             os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.invoice_image.name))
             return HttpResponseRedirect(self.success_url)    
