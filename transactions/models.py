@@ -1,5 +1,7 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from common.utils import format_for_storage
+from datetime import datetime
 
 # Create your models here.
 class Transaction(models.Model):
@@ -8,12 +10,21 @@ class Transaction(models.Model):
     statement_type = models.CharField(max_length=20)
     transaction_description = models.TextField(max_length=500)
     transaction_amount = models.DecimalField(max_digits=20, decimal_places=2)
-    document_image = models.FileField()
-    is_verified = models.BooleanField()
-    accounting_classification = models.CharField(max_length=20)
+    #is_verified = models.BooleanField()
+    match_id = models.BigIntegerField()
+    ACCOUNTING_CLASSIFICATIONS = (
+        ("revenue", "Revenue"),
+        ("expense", "Expense") 
+    )
+    accounting_classification = models.CharField(max_length=20, choices=ACCOUNTING_CLASSIFICATIONS, blank=True)
     
     def __str__(self):
         return self.transaction_description
+    
+    def get_matching_expense(self):
+        return Expense.objects.get(pk=self.match_id)
+
+    matching_expense = property(get_matching_expense)
 
 class Property(models.Model):
     address = models.CharField(max_length=50)
@@ -38,7 +49,7 @@ class Expense(models.Model):
 
     expense_date = models.DateField()
     address = models.ForeignKey(
-        Property,
+        Rental_Unit,
         on_delete=models.CASCADE,
         related_name='expenses'
     )
@@ -60,13 +71,21 @@ class Expense(models.Model):
     invoice_image = models.FileField()
     note = models.TextField(max_length = 500)
 
+    date_uploaded = models.DateTimeField(default=datetime.now())
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE
+    )
+
     def display_full_path_to_gcs(self):
-        formatted_address = format_for_storage(self.address.address)
         year = self.expense_date.year
         return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_expense_folder(), self.invoice_image.name)
     
     def get_expense_folder(self):
-        formatted_address = format_for_storage(self.address.address)
+        formatted_address = format_for_storage(str(self.address.address))
         year = self.expense_date.year
         return '{}/{}/{}'.format(formatted_address, 'invoices', year)
+    
+    
+
 

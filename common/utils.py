@@ -18,5 +18,11 @@ def store_in_gcs(file, bucket, blob_prefix):
     bucket = create_or_retrieve(bucket)
     generated_filename = format_for_storage(file.name)
     blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
+    if file.name.lower().endswith('pdf'):
+        blob.content_type = 'application/pdf'
+    elif file.name.lower().endswith('png'):
+        blob.content_type = 'image/png'
+    elif file.name.lower().endswith(('jpeg','jpg')):
+        blob.content_type = 'image/jpeg'
     blob.upload_from_file(file)
     

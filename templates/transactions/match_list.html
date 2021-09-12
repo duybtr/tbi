@@ -1,0 +1,69 @@
+{% extends '_base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Transaction Date</th>
+        <th scope="col">Account Number</th>
+        <th scope="col">Statement Type</th>
+        <th scope="col">Transaction Description</th>
+        <th scope="col">Transaction Amount</th>
+        <th scope="col">Accounting Classification</th>
+        <th scope="col">Verified ?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ target_transaction.transaction_date }}</td>
+        <td>{{ target_transaction.account_number }}</td>
+        <td>{{ target_transaction.statement_type }}</td>
+        <td>{{ target_transaction.transaction_description }}</td>
+        <td>{{ target_transaction.transaction_amount }}</td>
+        <td>{{ target_transaction.accounting_classification }}</td>
+        <td>{{ target_transaction.is_verified }}</td>
+        <td><a href="{% url 'transaction_edit' target_transaction.pk %}">Edit</a></td>
+     </tr>
+    
+    </tbody>
+  </table>
+
+<h1>
+{% if object_list|length > 1 %}
+{{ object_list|length }} potential matches found:
+{% else %}
+{{ object_list|length }} potential match found:
+{% endif %}
+</h1>
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Expense Date</th>
+        <th scope="col">Address</th>
+        <th scope="col">Expense Type</th>
+        <th scope="col">Expense Amount</th>
+        <th scope="col">Invoice Image</th>
+        <th scope="col">Note </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for expense in object_list %}
+      <tr>
+        <td>{{ expense.expense_date }}</td>
+        <td>{{ expense.address }}</td>
+        <td>{{ expense.get_expense_type_display }}</td>
+        <td>${{ expense.amount|intcomma }}</td>
+        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
+        <td>{{ expense.note }}</td>
+        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+        <td><a href="{% url 'match_expense' target_transaction.pk expense.pk %}">Select</a></td>
+     </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}

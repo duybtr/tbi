@@ -1,7 +1,15 @@
 # transactions/tests.py
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse, resolve # new
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from .views import HomePageView, statement_upload, transaction_list# new
+from .models import Transaction, Expense, Property, Rental_Unit
+from datetime import datetime
+from accounts.models import CustomUser
+from django.conf import settings
+import os
+
 
 class HomepageTests(SimpleTestCase):
 
@@ -69,3 +77,50 @@ class TransactionListTests(TestCase):
             view.func.__name__,
             transaction_list.__name__
         )
+
+class TransactionModelTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create(
+            username = 'superadmin',
+            email = 'admin@gmail.com',
+            password = 12345
+        )
+
+        self.mock_property = Property.objects.create(
+            address = '123 Elm St',
+            market_price = 1000000.00
+        )
+        self.mock_rental_unit = Rental_Unit.objects.create(
+            address = self.mock_property
+        )
+        
+        self.mock_file = SimpleUploadedFile('invoice.txt', b"Hello World")
+        self.mock_expense = Expense.objects.create(
+            expense_date = datetime.now(),
+            address = self.mock_rental_unit,
+            expense_type = 'Management Fee',
+            amount = 25.00,
+            invoice_image = self.mock_file,
+            note = "Testing",
+            author = self.user
+        )
+        self.transaction = Transaction.objects.create(
+            transaction_date = datetime.now(),
+            account_number = '1234',
+            statement_type = 'credit',
+            transaction_description = 'test',
+            transaction_amount = 50.00,
+            match_id = self.mock_expense.id,
+            accounting_classification = 'Revenue',
+            
+        )
+
+    def test_retrieve_matching_expense(self):   
+        transaction = Transaction.objects.get(pk=self.transaction.id) 
+        self.assertEqual(
+            transaction.matching_expense.id,
+            self.mock_expense.id
+        )
+        self.assertTrue(len(self.mock_expense.display_full_path_to_gcs()) > 10)
+        os.remove(os.path.join(settings.MEDIA_ROOT, self.mock_file.name))

@@ -1,4 +1,5 @@
 {% extends '_base.html' %}
+{% load humanize %}
 
 {% block content %}
 <table class="table table-striped">
@@ -18,11 +19,12 @@
       <tr>
         <td>{{ expense.expense_date }}</td>
         <td>{{ expense.address }}</td>
-        <td>{{ expense.expense_type }}</td>
-        <td>{{ expense.amount }}</td>
+        <td>{{ expense.get_expense_type_display }}</td>
+        <td>${{ expense.amount|intcomma }}</td>
         <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
         <td>{{ expense.note }}</td>
         <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+        
      </tr>
       {% endfor %}
     </tbody>

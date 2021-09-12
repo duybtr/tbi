@@ -13,8 +13,9 @@ from django.views.generic import ListView
 from common.utils import store_in_gcs
 from google.cloud import storage
 import logging
-import datetime
+from datetime import datetime
 import os
+from decimal import Decimal
 from django.conf import settings
 
 logging.basicConfig(filename='example.log', level=logging.DEBUG)
@@ -26,7 +27,7 @@ class AboutPageView(TemplateView):
     template_name = 'about.html'
 
 def convert_date(dt_string):
-    return datetime.datetime.strptime(dt_string, '%m/%d/%Y').strftime('%Y-%m-%d')
+    return datetime.strptime(dt_string, '%m/%d/%Y').strftime('%Y-%m-%d')
 def convert_decimal(amount):
     if not amount:
         return 0
@@ -78,15 +79,16 @@ def statement_upload(request):
                 statement_type = statement_type_val,
                 transaction_description = transaction_description_val,
                 transaction_amount = transaction_amount_val,
-                document_image = '',
                 is_verified = False,
                 accounting_classification = '',
             )
         return HttpResponseRedirect(reverse('transaction_list'))
 def transaction_list(request):
     template = 'transactions/transaction_list.html'
-    data = Transaction.objects.all()
-    context = {'transactions': data }
+    transactions = Transaction.objects.all()
+    matching_expenses = Expense.objects.filter(pk__in = [t.match_id for t in transactions])
+
+    context = {'transactions': transactions }
     return render(request, template, context)
 
 
@@ -118,6 +120,7 @@ class CreateExpenseView(CreateView):
         
         if form.is_valid():
             expense_model = form.save(commit=False)
+            expense_model.author = request.user
             store_in_gcs(expense_model.invoice_image, expense_model.GCS_ROOT_BUCKET, expense_model.get_expense_folder())
             form.save()
             os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.invoice_image.name))
@@ -133,3 +136,32 @@ class ExpenseUpdateView(UpdateView):
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
     success_url = reverse_lazy('expense_list')
+
+class MatchListView(ListView):
+    model = Expense
+    template_name = 'transactions/match_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MatchListView, self).get_context_data(**kwargs)
+        logging.info('kwargs {}'.format(self.kwargs.get('pk')))
+        target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
+        target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.2))
+        target_transaction_amount_lower = -1*(target_transaction.transaction_amount * Decimal(0.8))
+        context['target_transaction'] = target_transaction
+        context['object_list'] = Expense.objects.filter(
+            amount__lte=target_transaction_amount_upper
+        ).filter(
+            amount__gte=target_transaction_amount_lower
+        )
+        return context
+    
+def match_expense(request, transaction_pk, expense_pk):
+    logging.info("Transaction pk: {} -  Expense pk: {}".format(transaction_pk, expense_pk))
+    matching_expense = Expense.objects.get(pk=expense_pk)
+
+    # MyModel.objects.filter(pk=obj.pk).update(val=F('val') + 1)
+    # At this point obj.val is still 1, but the value in the database
+    # was updated to 2. The object's updated value needs to be reloaded
+    # from the database.
+    Transaction.objects.filter(pk=transaction_pk).update(match_id=expense_pk)
+    return HttpResponseRedirect(reverse('transaction_list'))

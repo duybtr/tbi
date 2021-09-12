@@ -16,4 +16,4 @@ class TransactionUpdateForm(forms.ModelForm):
 class CreateExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = '__all__'
+        exclude = ['author', 'date_uploaded']
