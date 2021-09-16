@@ -2,6 +2,10 @@
 {% load humanize %}
 
 {% block content %}
+<form class="form-inline mt-2 mt-md-0" action="{%url 'expense_list' %}" method="get">
+  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+</form>
+
 <table class="table table-striped">
     <thead>
       <tr>
@@ -24,8 +28,8 @@
         <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
         <td>{{ expense.note }}</td>
         <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-        
-     </tr>
+        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>

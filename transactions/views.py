@@ -8,8 +8,9 @@ from .models import Transaction, Expense
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic.edit import UpdateView, CreateView
+from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django.views.generic import ListView
+from django.db.models import Q
 from common.utils import store_in_gcs
 from google.cloud import storage
 import logging
@@ -83,15 +84,20 @@ def statement_upload(request):
                 accounting_classification = '',
             )
         return HttpResponseRedirect(reverse('transaction_list'))
-def transaction_list(request):
+
+class TransactionListView(ListView):
+    model = Transaction
+    context_object_name = 'transactions'
     template = 'transactions/transaction_list.html'
-    transactions = Transaction.objects.all()
-    matching_expenses = Expense.objects.filter(pk__in = [t.match_id for t in transactions])
 
-    context = {'transactions': transactions }
-    return render(request, template, context)
-
-
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query is None:
+            return Transaction.objects.all()
+        else:
+            return Transaction.objects.filter(
+                Q(transaction_description__icontains=query)
+            )
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -99,11 +105,15 @@ class TransactionUpdateView(UpdateView):
     template_name = 'transactions/transaction_edit.html'
     success_url = reverse_lazy('transaction_list')
 
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        store_in_gcs(form.files['document_image'], 'tbi_document_images')
-        return super().form_valid(form)
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
+        return render(request, self.template_name, {'form': form, 'transaction': transaction})
+
+class TransactionDeleteView(DeleteView):
+    model = Transaction
+    template_name = 'transactions/transaction_delete.html'
+    success_url = reverse_lazy('transaction_list')
 
 class CreateExpenseView(CreateView):
     model = Expense
@@ -131,11 +141,29 @@ class ExpenseListView(ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
 
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query is None:
+            return Expense.objects.all()
+        else:
+            return Expense.objects.filter(
+                Q(address__icontains=query)
+            )
+
 class ExpenseUpdateView(UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
     success_url = reverse_lazy('expense_list')
+
+class ExpenseDeleteView(DeleteView):
+    model = Expense
+    template_name = 'transactions/expense_delete.html'
+    success_url = reverse_lazy('expense_list')
+
+    def delete(self, *args, **kwargs):
+        Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
+        return super(ExpenseDeleteView, self).delete(*args, **kwargs)
 
 class MatchListView(ListView):
     model = Expense
@@ -165,3 +193,7 @@ def match_expense(request, transaction_pk, expense_pk):
     # from the database.
     Transaction.objects.filter(pk=transaction_pk).update(match_id=expense_pk)
     return HttpResponseRedirect(reverse('transaction_list'))
+def remove_match(request, transaction_pk):
+    Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
+    return HttpResponseRedirect(reverse('transaction_list'))
+    

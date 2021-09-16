@@ -2,6 +2,11 @@
 {% load humanize %}
 
 {% block content %}
+
+<form class="form-inline mt-2 mt-md-0" action="{%url 'transaction_list' %}" method="get">
+  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+</form>
+
 <table class="table table-striped">
     <thead>
       <tr>
@@ -30,7 +35,7 @@
         {% endif %}
         <td>{{ transaction.is_verified }}</td>
         <td><a href="{% url 'transaction_edit' transaction.pk %}">Edit</a></td>
-        
+        <td><a href="{% url 'transaction_delete' transaction.pk %}">Delete</a></td>
      </tr>
       {% endfor %}
     </tbody>
