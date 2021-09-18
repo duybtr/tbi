@@ -44,6 +44,7 @@ class Rental_Unit(models.Model):
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
 
+
 class Expense(models.Model):
     GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 

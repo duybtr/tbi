@@ -92,16 +92,22 @@ class TransactionListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        start_date = self.request.GET.get('start_date')
+        if not start_date:
+            start_date = '2008-01-01' 
+        end_date = self.request.GET.get('end_date')
+        if not end_date:
+            end_date = datetime.now()
         if query is None:
             return Transaction.objects.all()
         else:
             return Transaction.objects.filter(
-                Q(transaction_description__icontains=query)
+                Q(transaction_description__icontains=query) & Q(transaction_date__range=[start_date, end_date])
             )
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
-    form_class = TransactionUpdateForm
+    form_class  = TransactionUpdateForm
     template_name = 'transactions/transaction_edit.html'
     success_url = reverse_lazy('transaction_list')
 
@@ -122,7 +128,7 @@ class CreateExpenseView(CreateView):
     success_url = reverse_lazy('expense_list')
 
     def get(self, request, *args, **kwargs):
-        form = self.form_class(initial=self.initial)
+        form =self.form_class(initial=self.initial)
         return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
@@ -147,7 +153,7 @@ class ExpenseListView(ListView):
             return Expense.objects.all()
         else:
             return Expense.objects.filter(
-                Q(address__icontains=query)
+                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(expense)
             )
 
 class ExpenseUpdateView(UpdateView):

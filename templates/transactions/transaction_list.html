@@ -3,8 +3,13 @@
 
 {% block content %}
 
-<form class="form-inline mt-2 mt-md-0" action="{%url 'transaction_list' %}" method="get">
+<form class="form-inline mt-2 mt-md-0" action="" method="GET">
   <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+  <label for="start_date">Start Date:</label>
+  <input type="date" id="start_date" name="start_date" min="2018-01-01">&nbsp;
+  <label for="end_date">End Date:</label>
+  <input type="date" id="end_date" name="end_date" min="2018-01-01">
+  <button class="btn btn-info ml-2" type="submit">Go<button>
 </form>
 
 <table class="table table-striped">
@@ -16,7 +21,7 @@
         <th scope="col">Transaction Description</th>
         <th scope="col">Transaction Amount</th>
         <th scope="col">Accounting Classification</th>
-        <th scope="col">Match ID</th>
+        <th scope="col">Matching Invoice</th>
       </tr>
     </thead>
     <tbody>
