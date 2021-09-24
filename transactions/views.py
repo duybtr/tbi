@@ -4,8 +4,8 @@ from django.views.generic import TemplateView
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm
+from .models import Transaction, Expense, Revenue
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
@@ -61,13 +61,15 @@ def statement_upload(request):
         io_string = io.StringIO(data_set)
         next(io_string)
         for column in csv.reader(io_string, delimiter='|', quotechar='"'):
-            column_map = {}
+           
+           # logging.info("column[6] : {}".format(column[6]))
+           # logging.info("transaction_amount_val : {}".format("0" if not column[6] else -1*float(column[6]) ))
             if statement_type == 'credit_card':
                 transaction_date_val = convert_date(column[3])
                 account_number_val = column[1]
                 statement_type_val = 'credit_card'
                 transaction_description_val = column[5]
-                transaction_amount_val = column[6]
+                transaction_amount_val = "0" if not column[6] else -1*float(column[6])               
             elif statement_type == 'bank':
                 transaction_date_val = convert_date(column[0])
                 account_number_val = '1538'
@@ -80,7 +82,6 @@ def statement_upload(request):
                 statement_type = statement_type_val,
                 transaction_description = transaction_description_val,
                 transaction_amount = transaction_amount_val,
-                is_verified = False,
                 accounting_classification = '',
             )
         return HttpResponseRedirect(reverse('transaction_list'))
@@ -124,7 +125,7 @@ class TransactionDeleteView(DeleteView):
 class CreateExpenseView(CreateView):
     model = Expense
     form_class = CreateExpenseForm
-    template_name = 'transactions/create_expense.html'
+    template_name = 'transactions/create_record.html'
     success_url = reverse_lazy('expense_list')
 
     def get(self, request, *args, **kwargs):
@@ -137,9 +138,31 @@ class CreateExpenseView(CreateView):
         if form.is_valid():
             expense_model = form.save(commit=False)
             expense_model.author = request.user
-            store_in_gcs(expense_model.invoice_image, expense_model.GCS_ROOT_BUCKET, expense_model.get_expense_folder())
+            store_in_gcs(expense_model.document_image, expense_model.GCS_ROOT_BUCKET, expense_model.get_record_folder())
             form.save()
-            os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.invoice_image.name))
+            os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.document_image.name))
+            return HttpResponseRedirect(self.success_url)    
+        return render(request, self.template_name, {'form': form})
+
+class CreateRevenueView(CreateView):
+    model = Revenue
+    form_class = CreateRevenueForm
+    template_name = 'transactions/create_record.html'
+    success_url = reverse_lazy('revenue_list')
+
+    def get(self, request, *args, **kwargs):
+        form =self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        
+        if form.is_valid():
+            revenue_model = form.save(commit=False)
+            revenue_model.author = request.user
+            store_in_gcs(revenue_model.document_image, revenue_model.GCS_ROOT_BUCKET, revenue_model.get_record_folder())
+            form.save()
+            os.remove(os.path.join(settings.MEDIA_ROOT, revenue_model.document_image.name))
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
@@ -155,12 +178,31 @@ class ExpenseListView(ListView):
             return Expense.objects.filter(
                 Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(expense)
             )
+            
+class RevenueListView(ListView):
+    model = Revenue
+    template_name = 'transactions/revenue_list.html'
+
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        if query is None:
+            return Revenue.objects.all()
+        else:
+            return Revenue.objects.filter(
+                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(revenue)
+            )
 
 class ExpenseUpdateView(UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
     success_url = reverse_lazy('expense_list')
+
+class RevenueUpdateView(UpdateView):
+    model = Revenue
+    form_class = CreateRevenueForm
+    template_name = 'transactions/revenue_edit.html'
+    success_url = reverse_lazy('revenue_list')
 
 class ExpenseDeleteView(DeleteView):
     model = Expense
@@ -171,12 +213,21 @@ class ExpenseDeleteView(DeleteView):
         Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
         return super(ExpenseDeleteView, self).delete(*args, **kwargs)
 
-class MatchListView(ListView):
+class RevenueDeleteView(DeleteView):
+    model = Revenue
+    template_name = 'transactions/revenue_delete.html'
+    success_url = reverse_lazy('revenue_list')
+
+    def delete(self, *args, **kwargs):
+        Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
+        return super(RevenueDeleteView, self).delete(*args, **kwargs)
+
+class MatchingExpenseListView(ListView):
     model = Expense
-    template_name = 'transactions/match_list.html'
+    template_name = 'transactions/matching_expense_list.html'
 
     def get_context_data(self, **kwargs):
-        context = super(MatchListView, self).get_context_data(**kwargs)
+        context = super(MatchingExpenseListView, self).get_context_data(**kwargs)
         logging.info('kwargs {}'.format(self.kwargs.get('pk')))
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.2))
@@ -188,17 +239,37 @@ class MatchListView(ListView):
             amount__gte=target_transaction_amount_lower
         )
         return context
+
+class MatchingRevenueListView(ListView):
+    model = Revenue
+    template_name = 'transactions/matching_revenue_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MatchingRevenueListView, self).get_context_data(**kwargs)
+        logging.info('kwargs {}'.format(self.kwargs.get('pk')))
+        target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
+        target_transaction_amount_upper = target_transaction.transaction_amount * Decimal(1.2)
+        target_transaction_amount_lower = target_transaction.transaction_amount * Decimal(0.8)
+        context['target_transaction'] = target_transaction
+        context['object_list'] = Revenue.objects.filter(
+            amount__lte=target_transaction_amount_upper
+        ).filter(
+            amount__gte=target_transaction_amount_lower
+        )
+        return context
     
 def match_expense(request, transaction_pk, expense_pk):
     logging.info("Transaction pk: {} -  Expense pk: {}".format(transaction_pk, expense_pk))
     matching_expense = Expense.objects.get(pk=expense_pk)
-
-    # MyModel.objects.filter(pk=obj.pk).update(val=F('val') + 1)
-    # At this point obj.val is still 1, but the value in the database
-    # was updated to 2. The object's updated value needs to be reloaded
-    # from the database.
     Transaction.objects.filter(pk=transaction_pk).update(match_id=expense_pk)
     return HttpResponseRedirect(reverse('transaction_list'))
+
+def match_revenue(request, transaction_pk, revenue_pk):
+    logging.info("Transaction pk: {} -  Revenue pk: {}".format(transaction_pk, revenue_pk))
+    matching_revenue = Revenue.objects.get(pk=revenue_pk)
+    Transaction.objects.filter(pk=transaction_pk).update(match_id=revenue_pk)
+    return HttpResponseRedirect(reverse('transaction_list'))
+
 def remove_match(request, transaction_pk):
     Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
     return HttpResponseRedirect(reverse('transaction_list'))

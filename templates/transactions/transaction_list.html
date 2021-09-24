@@ -20,8 +20,7 @@
         <th scope="col">Statement Type</th>
         <th scope="col">Transaction Description</th>
         <th scope="col">Transaction Amount</th>
-        <th scope="col">Accounting Classification</th>
-        <th scope="col">Matching Invoice</th>
+        <th scope="col">Matching Document</th>
       </tr>
     </thead>
     <tbody>
@@ -32,13 +31,15 @@
         <td>{{ transaction.statement_type }}</td>
         <td>{{ transaction.transaction_description }}</td>
         <td>${{ transaction.transaction_amount|intcomma}}</td>
-        <td>{{ transaction.accounting_classification }}</td>
         {% if transaction.match_id == 0 %}
-        <td><a href="{% url 'match_list' transaction.pk %}">Match</a></td>
+          {% if transaction.transaction_amount < 0 %}
+                <td><a href="{% url 'matching_expense_list' transaction.pk %}">Match</a></td>
+          {% else %}
+                <td><a href="{% url 'matching_revenue_list' transaction.pk %}">Match</a></td>
+          {% endif %}
         {% else %}
-        <td><a href="{{ transaction.matching_expense.display_full_path_to_gcs }}">{{ transaction.matching_expense.invoice_image.name }}</a></td>
+        <td><a href="{{ transaction.matching_expense.display_full_path_to_gcs }}">{{ transaction.matching_expense.document_image.name }}</a></td>
         {% endif %}
-        <td>{{ transaction.is_verified }}</td>
         <td><a href="{% url 'transaction_edit' transaction.pk %}">Edit</a></td>
         <td><a href="{% url 'transaction_delete' transaction.pk %}">Delete</a></td>
      </tr>

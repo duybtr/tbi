@@ -3,8 +3,8 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse, resolve # new
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .views import HomePageView, statement_upload, transaction_list# new
-from .models import Transaction, Expense, Property, Rental_Unit
+from .views import HomePageView, statement_upload # new
+from .models import Transaction, Expense, Revenue, Property, Rental_Unit
 from datetime import datetime
 from accounts.models import CustomUser
 from django.conf import settings
@@ -77,6 +77,100 @@ class TransactionListTests(TestCase):
             view.func.__name__,
             transaction_list.__name__
         )
+
+class ExpenseModelTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+
+        self.transaction = Transaction.objects.create(
+            transaction_date = datetime.now(),
+            account_number = '1234',
+            statement_type = 'bank',
+            transaction_description = 'Testing',
+            transaction_amount = 23.00,
+            accounting_classification = 'Revenue'
+        )
+        
+
+        self.user = User.objects.create(
+            username = 'superadmin',
+            email = 'admin@gmail.com',
+            password = 12345
+        )
+
+        self.mock_property = Property.objects.create(
+            address = '123 Elm St',
+            market_price = 1000000.00
+        )
+        self.mock_rental_unit = Rental_Unit.objects.create(
+            address = self.mock_property
+        )
+        
+        self.mock_file = SimpleUploadedFile('invoice.txt', b"Hello World")
+        self.mock_expense = Expense.objects.create(
+            record_date = datetime.now(),
+            address = self.mock_rental_unit,
+            expense_type = 'Management Fee',
+            amount = 25.00,
+            document_image = self.mock_file,
+            note = "Testing",
+            author = self.user
+        )
+
+    def test_get_expense_folder(self):
+        self.assertEqual(
+            self.mock_expense.get_record_folder(),
+            '123_Elm_St/invoices/2021'
+        )
+        os.remove(os.path.join(settings.MEDIA_ROOT, self.mock_file.name))
+   
+    def test_expense_content(self):
+        self.assertEqual(self.mock_expense.address.address.address, '123 Elm St')
+        self.assertEqual(self.mock_expense.expense_type, 'Management Fee')
+        self.assertEqual(self.mock_expense.note, 'Testing')
+        self.assertEqual(self.mock_expense.amount, 25.00)
+
+    def test_expense_list_view(self):
+        response = self.client.get(reverse('expense_list'), args=self.transaction.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Testing')
+        self.assertTemplateUsed(response, 'expense_list.html')
+
+
+class RevenueModelTest(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create(
+            username = 'superadmin',
+            email = 'admin@gmail.com',
+            password = 12345
+        )
+
+        self.mock_property = Property.objects.create(
+            address = '123 Elm St',
+            market_price = 1000000.00
+        )
+        self.mock_rental_unit = Rental_Unit.objects.create(
+            address = self.mock_property
+        )
+        
+        self.mock_file = SimpleUploadedFile('invoice.txt', b"Hello World")
+        self.mock_revenue = Revenue.objects.create(
+            record_date = datetime.now(),
+            address = self.mock_rental_unit,
+            revenue_type = 'rent',
+            amount = 25.00,
+            document_image = self.mock_file,
+            note = "Testing",
+            author = self.user
+        )
+    def test_get_revenue_folder(self):
+        self.assertEqual(
+            self.mock_revenue.get_record_folder(),
+            '123_Elm_St/checks/2021'
+        )
+        os.remove(os.path.join(settings.MEDIA_ROOT, self.mock_file.name))
+
 
 class TransactionModelTest(TestCase):
     def setUp(self):

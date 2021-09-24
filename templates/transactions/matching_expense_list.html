@@ -21,7 +21,7 @@
         <td>{{ target_transaction.account_number }}</td>
         <td>{{ target_transaction.statement_type }}</td>
         <td>{{ target_transaction.transaction_description }}</td>
-        <td>{{ target_transaction.transaction_amount }}</td>
+        <td>{{ target_transaction.transaction_amount|intcomma }}</td>
         <td>{{ target_transaction.accounting_classification }}</td>
         <td>{{ target_transaction.is_verified }}</td>
         <td><a href="{% url 'transaction_edit' target_transaction.pk %}">Edit</a></td>
@@ -51,18 +51,20 @@
       </tr>
     </thead>
     <tbody>
-      {% for expense in object_list %}
-      <tr>
-        <td>{{ expense.expense_date }}</td>
-        <td>{{ expense.address }}</td>
-        <td>{{ expense.get_expense_type_display }}</td>
-        <td>${{ expense.amount|intcomma }}</td>
-        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
-        <td>{{ expense.note }}</td>
-        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-        <td><a href="{% url 'match_expense' target_transaction.pk expense.pk %}">Select</a></td>
-     </tr>
-      {% endfor %}
+      {% if object_list|length > 0 %}
+        {% for expense in object_list %}
+        <tr>
+          <td>{{ expense.record_date }}</td>
+          <td>{{ expense.address }}</td>
+          <td>{{ expense.get_expense_type_display }}</td>
+          <td>${{ expense.amount|intcomma }}</td>
+          <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
+          <td>{{ expense.note }}</td>
+          <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+          <td><a href="{% url 'match_expense' target_transaction.pk expense.pk %}">Select</a></td>
+      </tr>
+        {% endfor %}
+      {% endif %}
     </tbody>
 </table>
 

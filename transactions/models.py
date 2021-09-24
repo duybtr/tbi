@@ -10,8 +10,7 @@ class Transaction(models.Model):
     statement_type = models.CharField(max_length=20)
     transaction_description = models.TextField(max_length=500)
     transaction_amount = models.DecimalField(max_digits=20, decimal_places=2)
-    #is_verified = models.BooleanField()
-    match_id = models.BigIntegerField()
+    match_id = models.BigIntegerField(default=0)
     ACCOUNTING_CLASSIFICATIONS = (
         ("revenue", "Revenue"),
         ("expense", "Expense") 
@@ -28,7 +27,7 @@ class Transaction(models.Model):
 
 class Property(models.Model):
     address = models.CharField(max_length=50)
-    market_price = models.DecimalField(max_digits=20, decimal_places=2)
+    market_price = models.DecimalField(max_digits=20, decimal_places=2, default=0)
 
     def __str__(self):
         return self.address
@@ -44,16 +43,38 @@ class Rental_Unit(models.Model):
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
 
-
-class Expense(models.Model):
+class Record(models.Model):
     GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
-    expense_date = models.DateField()
+    record_dir = 'temp'
+
+    record_date = models.DateField()
     address = models.ForeignKey(
         Rental_Unit,
         on_delete=models.CASCADE,
-        related_name='expenses'
+        related_name='records'
     )
+    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    document_image = models.FileField()
+    note = models.TextField(max_length = 500)
+
+    date_uploaded = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE
+    )
+
+    def display_full_path_to_gcs(self):
+        year = self.record_date.year
+        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_record_folder(), self.document_image.name)
+    
+    def get_record_folder(self):
+        formatted_address = format_for_storage(str(self.address.address))
+        year = self.record_date.year
+        return '{}/{}/{}'.format(formatted_address, self.record_dir, year)
+
+class Expense(Record):
+    record_dir = 'invoices'
     EXPENSE_TYPES = (
         ("misc", "Misc"),
         ('advertising', 'Advertising'),
@@ -67,26 +88,13 @@ class Expense(models.Model):
         ('commission', 'Commission')
     )
     expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES)
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
-
-    invoice_image = models.FileField()
-    note = models.TextField(max_length = 500)
-
-    date_uploaded = models.DateTimeField(default=datetime.now())
-    author = models.ForeignKey(
-        get_user_model(),
-        on_delete=models.CASCADE
+    
+class Revenue(Record):
+    record_dir = 'checks'
+    REVENUE_TYPES = (
+        ('reimb','Reimbursement'),
+        ('rent', 'Rent')
     )
-
-    def display_full_path_to_gcs(self):
-        year = self.expense_date.year
-        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_expense_folder(), self.invoice_image.name)
-    
-    def get_expense_folder(self):
-        formatted_address = format_for_storage(str(self.address.address))
-        year = self.expense_date.year
-        return '{}/{}/{}'.format(formatted_address, 'invoices', year)
-    
-    
+    revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
 
 
