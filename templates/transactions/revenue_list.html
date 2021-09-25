@@ -9,26 +9,26 @@
 <table class="table table-striped">
     <thead>
       <tr>
-        <th scope="col">Expense Date</th>
-        <th scope="col">Address</th>
-        <th scope="col">Expense Type</th>
-        <th scope="col">Expense Amount</th>
-        <th scope="col">Invoice Image</th>
+        <th scope="col">Revenue Date</th>
+        <th scope="col">Revenue</th>
+        <th scope="col">Revenue Type</th>
+        <th scope="col">Revenue Amount</th>
+        <th scope="col">Check Image</th>
         <th scope="col">Note </th>
         <th></th>
       </tr>
     </thead>
     <tbody>
-      {% for expense in object_list %}
+      {% for revenue in object_list %}
       <tr>
-        <td>{{ expense.expense_date }}</td>
-        <td>{{ expense.address }}</td>
-        <td>{{ expense.get_expense_type_display }}</td>
-        <td>${{ expense.amount|intcomma }}</td>
-        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.invoice_image.name }}</a></td>
+        <td>{{ revenue.record_date }}</td>
+        <td>{{ revenue.address }}</td>
+        <td>{{ revenue.get_revenue_type_display }}</td>
+        <td>${{ revenue.amount|intcomma }}</td>
+        <td><a href="{{ revenue.display_full_path_to_gcs }}">{{ revenue.document_image.name }}</a></td>
         <td>{{ expense.note }}</td>
-        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
+        <td><a href="{% url 'revenue_edit' revenue.pk %}">Edit</a></td>
+        <td><a href="{% url 'revenue_delete' revenue.pk %}">Delete</a></td>
       </tr>
       {% endfor %}
     </tbody>

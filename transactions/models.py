@@ -4,26 +4,43 @@ from common.utils import format_for_storage
 from datetime import datetime
 
 # Create your models here.
+class Statement(models.Model):
+    choices = [
+        ('credit_card', 'Credit Card'),
+        ('bank', 'Bank')
+    ]
+
+    period_ending_date = models.DateField()
+    account_number = models.CharField(max_length=4)
+    statement_type = models.CharField(max_length=20, choices=choices)
+    uploaded_file = models.FileField()
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE
+    ) 
+    upload_date = models.DateField()
+
 class Transaction(models.Model):
     transaction_date = models.DateField()
-    account_number = models.CharField(max_length=4)
-    statement_type = models.CharField(max_length=20)
+    statement = models.ForeignKey(
+        Statement,
+        on_delete=models.CASCADE,
+        related_name='transactions'
+    )
     transaction_description = models.TextField(max_length=500)
     transaction_amount = models.DecimalField(max_digits=20, decimal_places=2)
     match_id = models.BigIntegerField(default=0)
-    ACCOUNTING_CLASSIFICATIONS = (
-        ("revenue", "Revenue"),
-        ("expense", "Expense") 
-    )
-    accounting_classification = models.CharField(max_length=20, choices=ACCOUNTING_CLASSIFICATIONS, blank=True)
     
     def __str__(self):
         return self.transaction_description
     
-    def get_matching_expense(self):
-        return Expense.objects.get(pk=self.match_id)
+    def get_matching_record(self):
+        if self.transaction_amount >= 0:
+            return Revenue.objects.get(pk=self.match_id)
+        else:
+            return Expense.objects.get(pk=self.match_id)
 
-    matching_expense = property(get_matching_expense)
+    matching_record = property(get_matching_record)
 
 class Property(models.Model):
     address = models.CharField(max_length=50)

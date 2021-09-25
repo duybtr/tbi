@@ -1,12 +1,9 @@
 from django import forms
-from .models import Transaction, Expense, Revenue
+from .models import Transaction, Expense, Revenue, Statement
 class StatementUploadForm(forms.Form):
-    choices = [
-        ('credit_card', 'Credit Card'),
-        ('bank', 'Bank')
-    ]
-    statement_type = forms.ChoiceField(choices=choices)
-    uploaded_file = forms.FileField()
+    class Meta:
+        model = Statement
+        exclude = ['author', 'date_uploaded']
 
 class TransactionUpdateForm(forms.ModelForm):
    class Meta:
