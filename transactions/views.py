@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Revenue
+from .models import Transaction, Expense, Revenue, Statement
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -56,6 +56,7 @@ def statement_upload(request):
         # let's check if it is a csv file
         if not csv_file.name.endswith('.csv'):
             messages.error(request, 'THIS IS NOT A CSV FILE')
+
         data_set = csv_file.read().decode('UTF-8')
         # setup a stream which is when we loop through each line we are able to handle a data in a stream
         io_string = io.StringIO(data_set)
@@ -85,6 +86,16 @@ def statement_upload(request):
                 accounting_classification = '',
             )
         return HttpResponseRedirect(reverse('transaction_list'))
+
+class StatementListView(ListView):
+    model = Statement
+    context_object_name = 'statements'
+    template = 'transactions/statement_list.html'
+
+class StatementDeleteView(ListView):
+    model = Statement
+    template = 'transactions/statement_delete.html'
+    success_url = reverse_lazy('statement_delete')
 
 class TransactionListView(ListView):
     model = Transaction

@@ -1,0 +1,37 @@
+{% extends '_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<form class="form-inline mt-2 mt-md-0" action="{%url 'expense_list' %}" method="get">
+  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+</form>
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Ending Date/th>
+        <th scope="col">Type</th>
+        <th scope="col">Account Number </th>
+        <th scope="col">Uploaded file</th>
+        <th scope="col">Is verified? </th>
+        
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for statement in object_list %}
+      <tr>
+        <td>{{ statement.period_ending_date }}</td>
+        <td>{{ statement.statement_type_display }}</td>
+        <td>{{ statement.account_number }}</td>
+        <td>${{ statement.amount|intcomma }}</td>
+        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
+        <td>{{ expense.note }}</td>
+        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock content %}

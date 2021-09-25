@@ -1,9 +1,12 @@
 from django import forms
 from .models import Transaction, Expense, Revenue, Statement
-class StatementUploadForm(forms.Form):
+class StatementUploadForm(forms.ModelForm):
     class Meta:
         model = Statement
         exclude = ['author', 'date_uploaded']
+        labels = {
+            'uploaded_file': 'Upload a file'
+        }
 
 class TransactionUpdateForm(forms.ModelForm):
    class Meta:

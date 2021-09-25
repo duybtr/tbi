@@ -5,6 +5,9 @@ from datetime import datetime
 
 # Create your models here.
 class Statement(models.Model):
+
+    record_dir = 'statements'
+
     choices = [
         ('credit_card', 'Credit Card'),
         ('bank', 'Bank')
@@ -14,11 +17,21 @@ class Statement(models.Model):
     account_number = models.CharField(max_length=4)
     statement_type = models.CharField(max_length=20, choices=choices)
     uploaded_file = models.FileField()
+    is_verified = models.BooleanField()
     author = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE
     ) 
-    upload_date = models.DateField()
+    date_uploaded = models.DateField()
+
+    def display_full_path_to_gcs(self):
+        year = self.period_ending_date.year
+        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_record_folder(), self.uploaded_file.name)
+    
+    def get_statement_folder(self):
+        year = self.period_ending_date.year
+        return '{}/{}'.format(self.record_dir, year)
+    
 
 class Transaction(models.Model):
     transaction_date = models.DateField()
