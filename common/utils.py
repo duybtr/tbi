@@ -24,5 +24,7 @@ def store_in_gcs(file, bucket, blob_prefix):
         blob.content_type = 'image/png'
     elif file.name.lower().endswith(('jpeg','jpg')):
         blob.content_type = 'image/jpeg'
+    elif file.name.lower().endswith(('csv','dat')):
+        blob.content_type = 'text/plain'
     blob.upload_from_file(file)
     

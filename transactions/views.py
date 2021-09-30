@@ -15,7 +15,7 @@ from common.utils import store_in_gcs
 from google.cloud import storage
 import logging
 from datetime import datetime
-import os
+import os, sys
 from decimal import Decimal
 from django.conf import settings
 
@@ -34,58 +34,59 @@ def convert_decimal(amount):
         return 0
     return amount
 
-def statement_upload(request):
-    
-    # declaring template
-    template = 'transactions/statement_upload.html'
-    
-    if request.method == "GET":
-        form = StatementUploadForm()
-        context = {'form':form}
-        return render(request, template, context)
-    form = StatementUploadForm(request.POST, request.FILES)
-    if form.is_valid():
-        logging.info(form.cleaned_data['statement_type'])
-        logging.info(form.cleaned_data['uploaded_file'])
-        csv_file = form.cleaned_data['uploaded_file']
-        statement_type = form.cleaned_data['statement_type']
-        if statement_type == 'credit_card':
-            logging.info('The user just uploaded a credit_card statement')
-        elif statement_type == 'bank':
-            logging.info('The user just uploaded a bank statement')
-        # let's check if it is a csv file
-        if not csv_file.name.endswith('.csv'):
-            messages.error(request, 'THIS IS NOT A CSV FILE')
+class StatementCreateView(CreateView):
+    model = Statement
+    form_class = StatementUploadForm
+    template_name = 'transactions/statement_upload.html'
+    success_url = reverse_lazy('statement_list')
 
-        data_set = csv_file.read().decode('UTF-8')
-        # setup a stream which is when we loop through each line we are able to handle a data in a stream
-        io_string = io.StringIO(data_set)
-        next(io_string)
-        for column in csv.reader(io_string, delimiter='|', quotechar='"'):
-           
-           # logging.info("column[6] : {}".format(column[6]))
-           # logging.info("transaction_amount_val : {}".format("0" if not column[6] else -1*float(column[6]) ))
-            if statement_type == 'credit_card':
-                transaction_date_val = convert_date(column[3])
-                account_number_val = column[1]
-                statement_type_val = 'credit_card'
-                transaction_description_val = column[5]
-                transaction_amount_val = "0" if not column[6] else -1*float(column[6])               
-            elif statement_type == 'bank':
-                transaction_date_val = convert_date(column[0])
-                account_number_val = '1538'
-                statement_type_val = 'bank'
-                transaction_description_val = column[1]
-                transaction_amount_val = "0" if not column[2] else column[2]
-            _, created = Transaction.objects.update_or_create(
-                transaction_date = transaction_date_val,
-                account_number = account_number_val,
-                statement_type = statement_type_val,
-                transaction_description = transaction_description_val,
-                transaction_amount = transaction_amount_val,
-                accounting_classification = '',
-            )
-        return HttpResponseRedirect(reverse('transaction_list'))
+    def get(self, request, *args, **kwargs):
+        form =self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        
+        if form.is_valid():
+            statement_model = form.save(commit=False)
+            csv_file = form.cleaned_data['uploaded_file']
+            if not csv_file.name.endswith('.csv') or not csv_file.name.endswith('.dat'):
+                messages.error(request, 'THIS IS NOT A CSV FILE')
+            statement_model.author = request.user
+            store_in_gcs(statement_model.uploaded_file, statement_model.GCS_ROOT_BUCKET, statement_model.get_statement_folder())
+            statement_model = form.save()
+            populate_transaction_table(csv_file, statement_model)
+            os.remove(os.path.join(settings.MEDIA_ROOT, statement_model.uploaded_file.name))
+            return HttpResponseRedirect(self.success_url)   
+
+        return render(request, self.template_name, {'form': form})
+
+def populate_transaction_table(csv_file, statement_model):
+    logging.info("file : {}".format(csv_file.name))
+    statement_type = statement_model.statement_type
+    statement_id = statement_model.id
+    with(open(csv_file.name, newline='')) as csv_file:
+        reader = csv.reader(csv_file, delimiter='|', quotechar='"')
+        for index,row in enumerate(reader):
+            # skipping summary rows and header rows
+            skip_range = range(0,8) if statement_type == 'bank' else range(0,4)
+            if index in skip_range:
+                continue
+            else:
+                if statement_type == 'credit_card':
+                    transaction_date_val = convert_date(row[3])
+                    transaction_description_val = row[5]
+                    transaction_amount_val = "0" if not row[6] else -1*float(row[6])               
+                elif statement_type == 'bank':
+                    transaction_date_val = convert_date(row[0])
+                    transaction_description_val = row[1]
+                    transaction_amount_val = "0" if not row[2] else row[2]
+                _, created = Transaction.objects.update_or_create(
+                    transaction_date = transaction_date_val,
+                    statement_id = statement_id,
+                    transaction_description = transaction_description_val,
+                    transaction_amount = transaction_amount_val
+                )
 
 class StatementListView(ListView):
     model = Statement
@@ -104,6 +105,7 @@ class TransactionListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        statement_id = self.request.GET.get('statement_id')
         start_date = self.request.GET.get('start_date')
         if not start_date:
             start_date = '2008-01-01' 

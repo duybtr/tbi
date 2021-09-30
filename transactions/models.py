@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Create your models here.
 class Statement(models.Model):
-
+    GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
     record_dir = 'statements'
 
     choices = [
@@ -22,11 +22,11 @@ class Statement(models.Model):
         get_user_model(),
         on_delete=models.CASCADE
     ) 
-    date_uploaded = models.DateField()
+    date_uploaded = models.DateField(auto_now=True)
 
     def display_full_path_to_gcs(self):
         year = self.period_ending_date.year
-        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_record_folder(), self.uploaded_file.name)
+        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_statement_folder(), self.uploaded_file.name)
     
     def get_statement_folder(self):
         year = self.period_ending_date.year

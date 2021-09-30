@@ -9,7 +9,7 @@
 <table class="table table-striped">
     <thead>
       <tr>
-        <th scope="col">Ending Date/th>
+        <th scope="col">Ending Date</th>
         <th scope="col">Type</th>
         <th scope="col">Account Number </th>
         <th scope="col">Uploaded file</th>
@@ -21,14 +21,12 @@
     <tbody>
       {% for statement in object_list %}
       <tr>
-        <td>{{ statement.period_ending_date }}</td>
-        <td>{{ statement.statement_type_display }}</td>
+        <td><a href="{% url  'statement_list' %}?statement_id={{ statement.id }}">{{ statement.period_ending_date }}</a></td>
+        <td>{{ statement.get_statement_type_display }}</td>
         <td>{{ statement.account_number }}</td>
-        <td>${{ statement.amount|intcomma }}</td>
-        <td><a href="{{ expense.display_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
-        <td>{{ expense.note }}</td>
-        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
+        <td><a href="{{ statement.display_full_path_to_gcs }}"> {{ statement.uploaded_file.name }}</a></td>
+        <td>{{ statement.is_verified }}</td>
+       
       </tr>
       {% endfor %}
     </tbody>
