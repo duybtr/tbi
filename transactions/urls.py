@@ -32,6 +32,7 @@ urlpatterns = [
     path('upload_csv/', StatementCreateView.as_view(), name='upload_csv'),
     path('upload_invoice/', CreateExpenseView.as_view(), name='upload_invoice'),
     path('upload_check/', CreateRevenueView.as_view(), name='upload_check'),
+    path('<int:pk>/upload_check/', CreateRevenueView.as_view(), name='upload_check'),
     path('list_transactions/', TransactionListView.as_view(), name='transaction_list'),
     path('<int:pk>/transaction_edit/', TransactionUpdateView.as_view(), name='transaction_edit'),
     path('<int:pk>/expense_edit/', ExpenseUpdateView.as_view(), name='expense_edit'),

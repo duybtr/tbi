@@ -2,10 +2,6 @@
 {% load humanize %}
 
 {% block content %}
-<form class="form-inline mt-2 mt-md-0" action="{%url 'expense_list' %}" method="get">
-  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-</form>
-
 <table class="table table-striped">
     <thead>
       <tr>
@@ -21,7 +17,7 @@
     <tbody>
       {% for statement in object_list %}
       <tr>
-        <td><a href="{% url  'statement_list' %}?statement_id={{ statement.id }}">{{ statement.period_ending_date }}</a></td>
+        <td><a href="{% url  'transaction_list' %}?statement_id={{ statement.id }}">{{ statement.period_ending_date }}</a></td>
         <td>{{ statement.get_statement_type_display }}</td>
         <td>{{ statement.account_number }}</td>
         <td><a href="{{ statement.display_full_path_to_gcs }}"> {{ statement.uploaded_file.name }}</a></td>

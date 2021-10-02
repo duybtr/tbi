@@ -69,7 +69,7 @@ def populate_transaction_table(csv_file, statement_model):
         reader = csv.reader(csv_file, delimiter='|', quotechar='"')
         for index,row in enumerate(reader):
             # skipping summary rows and header rows
-            skip_range = range(0,8) if statement_type == 'bank' else range(0,4)
+            skip_range = range(0,8) if statement_type == 'bank' else range(0,5)
             if index in skip_range:
                 continue
             else:
@@ -104,6 +104,7 @@ class TransactionListView(ListView):
     template = 'transactions/transaction_list.html'
 
     def get_queryset(self):
+        q = Q()
         query = self.request.GET.get('q')
         statement_id = self.request.GET.get('statement_id')
         start_date = self.request.GET.get('start_date')
@@ -112,12 +113,12 @@ class TransactionListView(ListView):
         end_date = self.request.GET.get('end_date')
         if not end_date:
             end_date = datetime.now()
-        if query is None:
-            return Transaction.objects.all()
-        else:
-            return Transaction.objects.filter(
-                Q(transaction_description__icontains=query) & Q(transaction_date__range=[start_date, end_date])
-            )
+        q = Q(transaction_date__range=[start_date, end_date])
+        if not query is None:
+            q = q & Q(transaction_description__icontains=query)
+        if not statement_id is None:
+            q = q & Q(statement_id__exact=statement_id)
+        return Transaction.objects.filter(q);
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -141,19 +142,12 @@ class CreateExpenseView(CreateView):
     template_name = 'transactions/create_record.html'
     success_url = reverse_lazy('expense_list')
 
-    def get(self, request, *args, **kwargs):
-        form =self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
-
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
-        
         if form.is_valid():
             expense_model = form.save(commit=False)
             expense_model.author = request.user
-            store_in_gcs(expense_model.document_image, expense_model.GCS_ROOT_BUCKET, expense_model.get_record_folder())
-            form.save()
-            os.remove(os.path.join(settings.MEDIA_ROOT, expense_model.document_image.name))
+            form.save()   
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
@@ -164,8 +158,21 @@ class CreateRevenueView(CreateView):
     success_url = reverse_lazy('revenue_list')
 
     def get(self, request, *args, **kwargs):
-        form =self.form_class(initial=self.initial)
-        return render(request, self.template_name, {'form': form})
+        target_transaction = None
+        pk = self.kwargs.get('pk')
+        context = {}
+        form = self.form_class(initial=self.initial)
+        if pk:
+            target_transaction = Transaction.objects.get(pk=pk)
+            if not target_transaction is None:
+                context['target_transaction'] = target_transaction
+                form =self.form_class(initial={
+                    'record_date':target_transaction.transaction_date, 
+                    'amount':target_transaction.transaction_amount, 
+                    'note':target_transaction.transaction_description
+                })               
+        context['form'] = form
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
@@ -173,9 +180,7 @@ class CreateRevenueView(CreateView):
         if form.is_valid():
             revenue_model = form.save(commit=False)
             revenue_model.author = request.user
-            store_in_gcs(revenue_model.document_image, revenue_model.GCS_ROOT_BUCKET, revenue_model.get_record_folder())
             form.save()
-            os.remove(os.path.join(settings.MEDIA_ROOT, revenue_model.document_image.name))
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 

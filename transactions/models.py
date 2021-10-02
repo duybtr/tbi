@@ -2,6 +2,12 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from common.utils import format_for_storage
 from datetime import datetime
+from django.conf import settings
+from common.utils import store_in_gcs
+import os
+import logging
+
+logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 # Create your models here.
 class Statement(models.Model):
@@ -31,6 +37,14 @@ class Statement(models.Model):
     def get_statement_folder(self):
         year = self.period_ending_date.year
         return '{}/{}'.format(self.record_dir, year)
+    def save(self, *args, **kwargs):
+        ## Looks a bit hacky but this needs to happen in this exact sequence. 
+        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
+        if not self.uploaded_file.name is None:
+            store_in_gcs(self.uploaded_file, self.GCS_ROOT_BUCKET, self.get_statement_folder())
+        super().save(*args, **kwargs)
+        if not self.uploaded_file.name is None:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.uploaded_file.name))
     
 
 class Transaction(models.Model):
@@ -85,7 +99,7 @@ class Record(models.Model):
         related_name='records'
     )
     amount = models.DecimalField(max_digits=20, decimal_places=2)
-    document_image = models.FileField()
+    document_image = models.FileField(blank=True, null=True)
     note = models.TextField(max_length = 500)
 
     date_uploaded = models.DateTimeField(auto_now=True)
@@ -102,6 +116,19 @@ class Record(models.Model):
         formatted_address = format_for_storage(str(self.address.address))
         year = self.record_date.year
         return '{}/{}/{}'.format(formatted_address, self.record_dir, year)
+    
+    def save(self, *args, **kwargs):
+        ## Looks a bit hacky but this needs to happen in this exact sequence. 
+        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
+        logging.info('*************** {}'.format(self.document_image))
+        logging.info('not self.document_image.name is None returns {}'.format(not self.document_image.name is None))
+        logging.info('self.document_image.name {}'.format(self.document_image.name))
+        if self.document_image.name:
+            logging.info('Storing {} in GCS'.format(self.document_image))
+            store_in_gcs(self.document_image, self.GCS_ROOT_BUCKET, self.get_record_folder())
+        super().save(*args, **kwargs)
+        if self.document_image.name:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.document_image.name))
 
 class Expense(Record):
     record_dir = 'invoices'
