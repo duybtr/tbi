@@ -5,13 +5,13 @@ import csv, io
 from django.shortcuts import render
 from django.contrib import messages
 from .models import Transaction, Expense, Revenue, Statement
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
-from django.views.generic.edit import UpdateView, CreateView, DeleteView
+from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
 from django.db.models import Q
-from common.utils import store_in_gcs
+from common.utils import store_files, list_blobs, get_full_path_to_gcs
 from google.cloud import storage
 import logging
 from datetime import datetime
@@ -53,10 +53,10 @@ class StatementCreateView(CreateView):
             if not csv_file.name.endswith('.csv') or not csv_file.name.endswith('.dat'):
                 messages.error(request, 'THIS IS NOT A CSV FILE')
             statement_model.author = request.user
-            store_in_gcs(statement_model.uploaded_file, statement_model.GCS_ROOT_BUCKET, statement_model.get_statement_folder())
             statement_model = form.save()
             populate_transaction_table(csv_file, statement_model)
-            os.remove(os.path.join(settings.MEDIA_ROOT, statement_model.uploaded_file.name))
+            if csv_file.name:
+                os.remove(os.path.join(settings.MEDIA_ROOT, csv_file.name))
             return HttpResponseRedirect(self.success_url)   
 
         return render(request, self.template_name, {'form': form})
@@ -96,7 +96,7 @@ class StatementListView(ListView):
 class StatementDeleteView(ListView):
     model = Statement
     template = 'transactions/statement_delete.html'
-    success_url = reverse_lazy('statement_delete')
+    success_url = reverse_lazy('statement_list')
 
 class TransactionListView(ListView):
     model = Transaction
@@ -291,4 +291,27 @@ def match_revenue(request, transaction_pk, revenue_pk):
 def remove_match(request, transaction_pk):
     Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
     return HttpResponseRedirect(reverse('transaction_list'))
-    
+
+def unfiled_invoices(request):
+    folder_name = 'unfiled_invoices/'
+    template_name = 'transactions/unfiled_invoices.html'
+    blobs = list_blobs(folder_name)
+    result_set = [(blob, get_full_path_to_gcs(blob.name)) for blob in blobs]
+    context = {'blobs': result_set}
+    return render(request, template_name, context)
+
+class UploadMultipleInvoicesView(FormView):
+    folder_name = 'unfiled_invoices'
+    form_class = UploadMultipleInvoicesForm
+    template_name = 'transactions/upload_multiple_invoices.html'
+    success_url = reverse_lazy('upload_multiple_invoices')
+
+    def post(self, request, *args, **kwargs):
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        files = request.FILES.getlist('invoices')
+        if form.is_valid():
+            store_files(files, self.folder_name)
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)

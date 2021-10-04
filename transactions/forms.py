@@ -22,3 +22,6 @@ class CreateRevenueForm(forms.ModelForm):
     class Meta:
         model = Revenue
         exclude = ['author', 'date_uploaded']
+
+class UploadMultipleInvoicesForm(forms.Form):
+    invoices = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True})) 

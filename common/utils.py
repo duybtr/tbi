@@ -3,6 +3,8 @@
 
 from google.cloud import storage
 
+GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
+
 def format_for_storage(filename):
     return filename.replace(' ', '_')
 
@@ -13,18 +15,31 @@ def create_or_retrieve(bucket):
         bucket = client.create_bucket(bucket)
     return bucket
 
-def store_in_gcs(file, bucket, blob_prefix):
+def store_files(files, blob_prefix):
+    store_in_gcs(files, GCS_ROOT_BUCKET, blob_prefix)
+
+def store_in_gcs(files, bucket, blob_prefix):
     client = storage.Client()
     bucket = create_or_retrieve(bucket)
-    generated_filename = format_for_storage(file.name)
-    blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
-    if file.name.lower().endswith('pdf'):
-        blob.content_type = 'application/pdf'
-    elif file.name.lower().endswith('png'):
-        blob.content_type = 'image/png'
-    elif file.name.lower().endswith(('jpeg','jpg')):
-        blob.content_type = 'image/jpeg'
-    elif file.name.lower().endswith(('csv','dat')):
-        blob.content_type = 'text/plain'
-    blob.upload_from_file(file)
-    
+    for file in files:
+        generated_filename = format_for_storage(file.name)
+        blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
+        if file.name.lower().endswith('pdf'):
+            blob.content_type = 'application/pdf'
+        elif file.name.lower().endswith('png'):
+            blob.content_type = 'image/png'
+        elif file.name.lower().endswith(('jpeg','jpg')):
+            blob.content_type = 'image/jpeg'
+        elif file.name.lower().endswith(('csv','dat')):
+            blob.content_type = 'text/plain'
+        blob.upload_from_file(file)
+
+def list_blobs(folder_name):
+    client = storage.Client()
+    return client.list_blobs(GCS_ROOT_BUCKET, prefix=folder_name, delimiter='/')
+
+def get_full_blob_url(blob):
+    return display_full_path_to_gcs(blob.name)
+
+def get_full_path_to_gcs(relative_path):
+    return 'https://storage.cloud.google.com/{}/{}'.format(GCS_ROOT_BUCKET, relative_path)

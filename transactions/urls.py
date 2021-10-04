@@ -8,6 +8,7 @@ from .views import (
     TransactionListView,
     StatementCreateView,
     StatementListView, 
+    StatementDeleteView,
     #transaction_list, 
     CreateExpenseView,
     ExpenseListView,
@@ -21,9 +22,11 @@ from .views import (
     #MatchListView,
     MatchingExpenseListView,
     MatchingRevenueListView,
+    UploadMultipleInvoicesView,
     match_expense,
     match_revenue,
-    remove_match
+    remove_match,
+    unfiled_invoices
 )
 
 urlpatterns = [
@@ -43,11 +46,14 @@ urlpatterns = [
     path('<int:pk>/revenue_delete/', RevenueDeleteView.as_view(), name='revenue_delete'),
     path('<int:pk>/list_matching_revenues/', MatchingRevenueListView.as_view(), name='matching_revenue_list'),
     path('<int:pk>/list_matching_expenses/', MatchingExpenseListView.as_view(), name='matching_expense_list'),
+    path('upload_multiple_invoices/', UploadMultipleInvoicesView.as_view(), name='upload_multiple_invoices'),
     path('list_statements/', StatementListView.as_view(), name='statement_list'),
+    path('<int:pk>/delete_statement/', StatementDeleteView.as_view(), name='statement_delete'),
     #path('<int:pk>/list_matches/', MatchListView.as_view(), name='match_list'),
     path('<int:transaction_pk>/<int:expense_pk>/match_expense', match_expense, name='match_expense'),
     path('<int:transaction_pk>/remove_match', remove_match, name='remove_match'),
     path('<int:transaction_pk>/<int:revenue_pk>/match_revenue', match_revenue, name='match_revenue'),
     path('<int:transaction_pk>/remove_match', remove_match, name='remove_match'),
     path('<int:pk>/transaction_delete', TransactionDeleteView.as_view(), name='transaction_delete'),
+    path('unfiled_invoices/', unfiled_invoices, name='unfiled_invoices'),
 ]

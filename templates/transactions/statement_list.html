@@ -20,8 +20,9 @@
         <td><a href="{% url  'transaction_list' %}?statement_id={{ statement.id }}">{{ statement.period_ending_date }}</a></td>
         <td>{{ statement.get_statement_type_display }}</td>
         <td>{{ statement.account_number }}</td>
-        <td><a href="{{ statement.display_full_path_to_gcs }}"> {{ statement.uploaded_file.name }}</a></td>
+        <td><a href="{{ statement.get_full_path_to_gcs }}"> {{ statement.uploaded_file.name }}</a></td>
         <td>{{ statement.is_verified }}</td>
+        <td><a href="{% url 'statement_delete' statement.pk %}">Delete</a>  </td>
        
       </tr>
       {% endfor %}

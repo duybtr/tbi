@@ -1,0 +1,20 @@
+{% extends '_base.html' %}
+
+{% block content %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Unfiled Invoices</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for blob in blobs %}
+      <tr>
+        <td><a href="{{ blob.1 }}">{{ blob.0.name }}</a></td>      
+        <td><a href="">File</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock content %}

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from common.utils import format_for_storage
 from datetime import datetime
 from django.conf import settings
-from common.utils import store_in_gcs
+from common.utils import store_in_gcs, GCS_ROOT_BUCKET, get_full_path_to_gcs
 import os
 import logging
 
@@ -11,7 +11,6 @@ logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 # Create your models here.
 class Statement(models.Model):
-    GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
     record_dir = 'statements'
 
     choices = [
@@ -30,7 +29,7 @@ class Statement(models.Model):
     ) 
     date_uploaded = models.DateField(auto_now=True)
 
-    def display_full_path_to_gcs(self):
+    def get_full_path_to_gcs(self):
         year = self.period_ending_date.year
         return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_statement_folder(), self.uploaded_file.name)
     
@@ -40,12 +39,9 @@ class Statement(models.Model):
     def save(self, *args, **kwargs):
         ## Looks a bit hacky but this needs to happen in this exact sequence. 
         # If we try to delete the file before saving, then we would get the 'file is being processed error'.
-        if not self.uploaded_file.name is None:
-            store_in_gcs(self.uploaded_file, self.GCS_ROOT_BUCKET, self.get_statement_folder())
+        if self.uploaded_file.name:
+            store_in_gcs([self.uploaded_file], GCS_ROOT_BUCKET, self.get_statement_folder())
         super().save(*args, **kwargs)
-        if not self.uploaded_file.name is None:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.uploaded_file.name))
-    
 
 class Transaction(models.Model):
     transaction_date = models.DateField()
@@ -108,9 +104,12 @@ class Record(models.Model):
         on_delete=models.CASCADE
     )
 
-    def display_full_path_to_gcs(self):
+    def get_full_path_to_gcs(self):
+        return get_full_path_to_gcs(self.get_relative_path_to_gcs())
+
+    def get_relative_path_to_gcs(self):
         year = self.record_date.year
-        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_record_folder(), self.document_image.name)
+        return '{}/{}'.format(self.get_record_folder(), self.document_image.name)
     
     def get_record_folder(self):
         formatted_address = format_for_storage(str(self.address.address))
@@ -120,12 +119,8 @@ class Record(models.Model):
     def save(self, *args, **kwargs):
         ## Looks a bit hacky but this needs to happen in this exact sequence. 
         # If we try to delete the file before saving, then we would get the 'file is being processed error'.
-        logging.info('*************** {}'.format(self.document_image))
-        logging.info('not self.document_image.name is None returns {}'.format(not self.document_image.name is None))
-        logging.info('self.document_image.name {}'.format(self.document_image.name))
         if self.document_image.name:
-            logging.info('Storing {} in GCS'.format(self.document_image))
-            store_in_gcs(self.document_image, self.GCS_ROOT_BUCKET, self.get_record_folder())
+            store_in_gcs([self.document_image], GCS_ROOT_BUCKET, self.get_record_folder())
         super().save(*args, **kwargs)
         if self.document_image.name:
             os.remove(os.path.join(settings.MEDIA_ROOT, self.document_image.name))

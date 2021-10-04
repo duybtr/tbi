@@ -38,7 +38,7 @@
                 <td><a href="{% url 'matching_revenue_list' transaction.pk %}">Match</a></td>
           {% endif %}
         {% else %}
-        <td><a href="{{ transaction.matching_record.display_full_path_to_gcs }}">{{ transaction.matching_record.document_image.name }}</a></td>
+        <td><a href="{{ transaction.matching_record.get_full_path_to_gcs }}">{{ transaction.matching_record.document_image.name }}</a></td>
         {% endif %}
         <td><a href="{% url 'transaction_edit' transaction.pk %}">Edit</a></td>
         <td><a href="{% url 'transaction_delete' transaction.pk %}">Delete</a></td>
