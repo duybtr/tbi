@@ -21,7 +21,7 @@
     <tbody>
       {% for expense in object_list %}
       <tr>
-        <td>{{ expense.expense_date }}</td>
+        <td>{{ expense.record_date }}</td>
         <td>{{ expense.address }}</td>
         <td>{{ expense.get_expense_type_display }}</td>
         <td>${{ expense.amount|intcomma }}</td>

@@ -26,8 +26,8 @@
         <a class="p-2 text-dark" href="{% url 'revenue_list' %}">View Revenues</a>
         <a class="p-2 text-dark" href="{% url 'transaction_list' %}">View Transactions</a>
         <a class="p-2 text-dark" href="{% url 'statement_list' %}">View Statements</a>
-        <a class="p-2 text-dark" href="{% url 'unfiled_invoices' %}">Unfiled Invoices</a>
         <a class="p-2 text-dark" href="{% url 'upload_multiple_invoices' %}">Upload multiple invoices</a>
+        <a class="p-2 text-dark" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
         {% if user.is_authenticated %}
           <a class="p-2 text-dark" href="{% url 'logout' %}">Log Out</a>
         {% else %}

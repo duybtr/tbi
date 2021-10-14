@@ -43,3 +43,9 @@ def get_full_blob_url(blob):
 
 def get_full_path_to_gcs(relative_path):
     return 'https://storage.cloud.google.com/{}/{}'.format(GCS_ROOT_BUCKET, relative_path)
+
+def rename_blob(orig, dest):
+    client = storage.Client()
+    bucket = create_or_retrieve(GCS_ROOT_BUCKET)
+    blob=bucket.blob(orig)
+    bucket.rename_blob(blob, dest)

@@ -218,6 +218,3 @@ class TransactionModelTest(TestCase):
         )
         self.assertTrue(len(self.mock_expense.display_full_path_to_gcs()) > 10)
         os.remove(os.path.join(settings.MEDIA_ROOT, self.mock_file.name))
-
-class TestRecordModel(TestCase):
-    

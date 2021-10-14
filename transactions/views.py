@@ -4,14 +4,14 @@ from django.views.generic import TemplateView
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Revenue, Statement
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
 from django.db.models import Q
-from common.utils import store_files, list_blobs, get_full_path_to_gcs
+from common.utils import store_files, list_blobs, get_full_path_to_gcs, rename_blob
 from google.cloud import storage
 import logging
 from datetime import datetime
@@ -93,9 +93,11 @@ class StatementListView(ListView):
     context_object_name = 'statements'
     template = 'transactions/statement_list.html'
 
-class StatementDeleteView(ListView):
+class StatementDeleteView(DeleteView):
     model = Statement
-    template = 'transactions/statement_delete.html'
+    # not sure why this doesn't work
+    # template = 'transactions/statement_delete.html' 
+    context_object_name = 'statement'
     success_url = reverse_lazy('statement_list')
 
 class TransactionListView(ListView):
@@ -292,16 +294,7 @@ def remove_match(request, transaction_pk):
     Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
     return HttpResponseRedirect(reverse('transaction_list'))
 
-def unfiled_invoices(request):
-    folder_name = 'unfiled_invoices/'
-    template_name = 'transactions/unfiled_invoices.html'
-    blobs = list_blobs(folder_name)
-    result_set = [(blob, get_full_path_to_gcs(blob.name)) for blob in blobs]
-    context = {'blobs': result_set}
-    return render(request, template_name, context)
-
 class UploadMultipleInvoicesView(FormView):
-    folder_name = 'unfiled_invoices'
     form_class = UploadMultipleInvoicesForm
     template_name = 'transactions/upload_multiple_invoices.html'
     success_url = reverse_lazy('upload_multiple_invoices')
@@ -311,7 +304,61 @@ class UploadMultipleInvoicesView(FormView):
         form = self.get_form(form_class)
         files = request.FILES.getlist('invoices')
         if form.is_valid():
-            store_files(files, self.folder_name)
+            for f in files:
+                Raw_Invoice.objects.update_or_create(
+                    upload_date = datetime.now(),
+                    invoice_image = f,
+                    author = request.user
+                )
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
+
+class RawInvoiceListView(ListView):
+    model = Raw_Invoice
+    template_name = 'transactions/raw_invoice_list.html'
+    success_url = reverse_lazy('raw_invoices')
+
+    def get_queryset(self):
+        return Raw_Invoice.objects.filter(date_filed__isnull=True)
+
+class FileInvoiceView(UpdateView):
+    model = Expense
+    form_class = CreateExpenseForm
+    success_url = reverse_lazy('expense_list')
+    template_name = 'transactions/create_record.html'
+
+    def get(self, request, *args, **kwargs):
+        raw_invoice = None
+        pk = self.kwargs.get('pk')
+        context = {}
+        form = self.form_class(initial=self.initial)
+        if pk:
+            raw_invoice = Raw_Invoice.objects.get(pk=pk)
+            if not raw_invoice is None:
+                context['raw_invoice'] = raw_invoice
+                form =self.form_class(initial={
+                    'document_image': raw_invoice.invoice_image
+                })               
+        context['form'] = form
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        
+        if form.is_valid():
+            pk = self.kwargs.get('pk')
+            expense_model = form.save(commit=False)
+            raw_invoice = Raw_Invoice.objects.get(pk=pk)
+            expense_model.document_image = raw_invoice.invoice_image
+            expense_model.author = request.user
+            Raw_Invoice.objects.filter(pk=pk).update(
+                date_filed=datetime.now()
+            )
+            form.save()
+            rename_blob(raw_invoice.get_relative_path_to_gcs(), 
+                        expense_model.get_relative_path_to_gcs())
+            
+
+            return HttpResponseRedirect(self.success_url)    
+        return render(request, self.template_name, {'form': form})

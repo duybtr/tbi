@@ -31,7 +31,7 @@ class Statement(models.Model):
 
     def get_full_path_to_gcs(self):
         year = self.period_ending_date.year
-        return 'https://storage.cloud.google.com/{}/{}/{}'.format(self.GCS_ROOT_BUCKET, self.get_statement_folder(), self.uploaded_file.name)
+        return 'https://storage.cloud.google.com/{}/{}/{}'.format(GCS_ROOT_BUCKET, self.get_statement_folder(), self.uploaded_file.name)
     
     def get_statement_folder(self):
         year = self.period_ending_date.year
@@ -83,6 +83,35 @@ class Rental_Unit(models.Model):
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
 
+class Raw_Invoice(models.Model):
+    directory = 'unfiled_invoices'
+
+    upload_date = models.DateField(auto_now=True)
+    invoice_image = models.FileField()
+    date_filed = models.DateTimeField(blank=True, null=True)
+    author = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        blank = True,
+        null = True,
+    )
+    
+    def get_full_path_to_gcs(self):
+        return get_full_path_to_gcs(self.get_relative_path_to_gcs())
+
+    def get_relative_path_to_gcs(self):
+        return '{}/{}'.format(self.directory, self.invoice_image.name)
+    
+    def save(self, *args, **kwargs):
+        ## Looks a bit hacky but this needs to happen in this exact sequence. 
+        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
+        if self.invoice_image.name:
+            store_in_gcs([self.invoice_image], GCS_ROOT_BUCKET, self.directory)
+        super().save(*args, **kwargs)
+        if self.invoice_image.name:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.invoice_image.name))
+
+
 class Record(models.Model):
     GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
@@ -92,16 +121,16 @@ class Record(models.Model):
     address = models.ForeignKey(
         Rental_Unit,
         on_delete=models.CASCADE,
-        related_name='records'
+        related_name='records',
     )
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     document_image = models.FileField(blank=True, null=True)
     note = models.TextField(max_length = 500)
 
-    date_uploaded = models.DateTimeField(auto_now=True)
+    date_filed = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(
         get_user_model(),
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
     def get_full_path_to_gcs(self):
@@ -116,14 +145,7 @@ class Record(models.Model):
         year = self.record_date.year
         return '{}/{}/{}'.format(formatted_address, self.record_dir, year)
     
-    def save(self, *args, **kwargs):
-        ## Looks a bit hacky but this needs to happen in this exact sequence. 
-        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
-        if self.document_image.name:
-            store_in_gcs([self.document_image], GCS_ROOT_BUCKET, self.get_record_folder())
-        super().save(*args, **kwargs)
-        if self.document_image.name:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.document_image.name))
+   
 
 class Expense(Record):
     record_dir = 'invoices'
@@ -139,8 +161,14 @@ class Expense(Record):
         ('landscaping', 'Landscaping'),
         ('commission', 'Commission')
     )
-    expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES)
-    
+    raw_invoice = models.ForeignKey(
+        Raw_Invoice,
+        models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+    expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES, blank=True, null=True)
+        
 class Revenue(Record):
     record_dir = 'checks'
     REVENUE_TYPES = (
@@ -148,5 +176,13 @@ class Revenue(Record):
         ('rent', 'Rent')
     )
     revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
-
+    
+    def save(self, *args, **kwargs):
+        ## Looks a bit hacky but this needs to happen in this exact sequence. 
+        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
+        if self.document_image.name:
+            store_in_gcs([self.document_image], GCS_ROOT_BUCKET, self.get_record_folder())
+        super().save(*args, **kwargs)
+        if self.document_image.name:
+            os.remove(os.path.join(settings.MEDIA_ROOT, self.document_image.name))
 
