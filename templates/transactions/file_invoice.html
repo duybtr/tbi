@@ -1,0 +1,46 @@
+{% extends '_base.html' %}
+
+{% block content %}
+    <a href="{% url 'expense_list' %}">Back to expenses</a>
+    <h1>Edit</h1>
+    <form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="fieldWrapper">
+            {{ form.record_date.errors }}
+            <label for="{{ form.record_date.id_for_label }}">Transaction Date:</label>
+            {{ form.record_date }}
+        </div>
+
+        <div class="fieldWrapper">
+            {{ form.address.errors }}
+            <label for="{{ form.address.id_for_label }}">Address:</label>
+            {{ form.address }}
+        </div>
+
+        <div class="fieldWrapper">
+            {{ form.amount.errors }}
+            <label for="{{ form.amount.id_for_label }}">Amount:</label>
+            {{ form.amount }}
+        </div>
+        
+        <div class="fieldWrapper">
+            {{ form.document_image.errors }}
+            <label for="{{ form.document_image.id_for_label }}">Document Image:</label>
+            <a href="{{ raw_invoice.get_full_path_to_gcs }}">{{ raw_invoice.invoice_image.name }}</a>
+        </div>
+
+        <div class="fieldWrapper">
+            {{ form.note.errors }}
+            <label for="{{ form.note.id_for_label }}">Note:</label>
+            {{ form.note }}
+        </div>
+
+        <div class="fieldWrapper">
+            {{ form.expense_type.errors }}
+            <label for="{{ form.expense_type.id_for_label }}">Expense Type:</label>
+            {{ form.expense_type }}
+        </div>
+
+        <button class="btn btn-info ml-2" type="submit">Update</button>
+    </form>
+{% endblock content %}

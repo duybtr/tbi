@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Flexbox 0 — starting code</title>
+    <style>
+        #container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #content {
+
+        }
+
+        .b-example-divider {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+        }
+    </style>
+  </head>
+
+  <body>
+      <div id='container'>
+          <div id='navbar'>
+             <ul>
+                 <li>Home</li>
+                 <li>About</li>
+                 <li>Expenses</li>
+                 <li>Statements</li>
+             </ul>
+          </div>
+          <div class="b-example-divider"></div>
+          <div id='content'>
+            <p>Tacos actually microdosing, pour-over semiotics banjo chicharrones retro fanny pack portland everyday carry vinyl typewriter. Tacos PBR&B pork belly, everyday carry ennui pickled sriracha normcore hashtag polaroid single-origin coffee cold-pressed. PBR&B tattooed trust fund twee, leggings salvia iPhone photo booth health goth gastropub hammock.</p>
+          </div>
+      </div>
+  </body>

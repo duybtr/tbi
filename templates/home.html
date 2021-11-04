@@ -5,10 +5,10 @@
 {% block title %}Tran Ba Investment Group{% endblock title %}
 
 {% block content %}
-  <h1>This is a Home Page</h1>
-  <img class="logo" src="{% static 'images/logo.jpg' %}">
+  <h1>Tran Ba Investment Group LLC</h1>
+  <!-- <img class="logo" src="{% static 'images/logo.jpg' %}"> -->
   {% if user.is_authenticated %}
-    Hi {{user.email}}!
+    Hi {{user.username}}!
     <p><a href="{% url 'logout' %}">Log Out</a></p>
   {% else %}
     <p>You are not logged in</p>

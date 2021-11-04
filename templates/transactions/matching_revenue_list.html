@@ -65,7 +65,7 @@
       </tr>
         {% endfor %}
       {% else %}
-        <a href="{% url 'upload_check' target_transaction.pk %}">Add a revenue</a>
+        <a href="{% url 'create_matching_revenue' target_transaction.pk %}">Add a revenue</a>
       {% endif %}
     </tbody>
 </table>

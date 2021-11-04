@@ -5,9 +5,8 @@ from datetime import datetime
 from django.conf import settings
 from common.utils import store_in_gcs, GCS_ROOT_BUCKET, get_full_path_to_gcs
 import os
-import logging
 
-logging.basicConfig(filename='example.log', level=logging.DEBUG)
+#logging.basicConfig(filename='example.log', level=logging.DEBUG)
 
 # Create your models here.
 class Statement(models.Model):
@@ -145,8 +144,6 @@ class Record(models.Model):
         year = self.record_date.year
         return '{}/{}/{}'.format(formatted_address, self.record_dir, year)
     
-   
-
 class Expense(Record):
     record_dir = 'invoices'
     EXPENSE_TYPES = (
@@ -156,6 +153,7 @@ class Expense(Record):
         ('trash', 'Trash'),
         ('water', 'Water'),
         ('power', 'Power'),
+        ('insurance', 'Insurance'),
         ('repair_maintenance', 'Repair and Maintenance'),
         ('roof', 'Roof'),
         ('landscaping', 'Landscaping'),
@@ -177,12 +175,4 @@ class Revenue(Record):
     )
     revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
     
-    def save(self, *args, **kwargs):
-        ## Looks a bit hacky but this needs to happen in this exact sequence. 
-        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
-        if self.document_image.name:
-            store_in_gcs([self.document_image], GCS_ROOT_BUCKET, self.get_record_folder())
-        super().save(*args, **kwargs)
-        if self.document_image.name:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.document_image.name))
 

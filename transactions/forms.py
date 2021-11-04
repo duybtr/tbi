@@ -27,7 +27,6 @@ class CreateExpenseForm(forms.ModelForm):
         model = Expense
         exclude = ['author', 'date_uploaded','date_filed','raw_invoice']
         
-
 class CreateRevenueForm(forms.ModelForm):
     class Meta:
         model = Revenue

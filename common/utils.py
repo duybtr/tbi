@@ -49,3 +49,10 @@ def rename_blob(orig, dest):
     bucket = create_or_retrieve(GCS_ROOT_BUCKET)
     blob=bucket.blob(orig)
     bucket.rename_blob(blob, dest)
+
+def delete_file(file, blob_prefix):
+    client = storage.Client()
+    bucket = create_or_retrieve(GCS_ROOT_BUCKET)
+    generated_filename = format_for_storage(file.name)
+    blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
+    blob.delete()

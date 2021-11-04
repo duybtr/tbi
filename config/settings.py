@@ -102,6 +102,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'transactions.context_processors.count_invoices',
+                'transactions.context_processors.count_transactions',
             ],
         },
     },
@@ -183,6 +184,9 @@ LOGOUT_REDIRECT_URL = 'home'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/dev/howto/static-files/
+
+MEDIA_ROOT = '/tmp'
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))] # new
