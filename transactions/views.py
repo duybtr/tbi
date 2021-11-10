@@ -119,6 +119,7 @@ class TransactionListView(ListView):
     model = Transaction
     context_object_name = 'transactions'
     template = 'transactions/transaction_list.html'
+    paginate_by = 50
 
     def get_queryset(self):
         q = Q()
@@ -141,6 +142,7 @@ class UnmatchedTransactionListView(ListView):
     model = Transaction
     context_object_name = 'transactions'
     template = 'transactions/transaction_list.html'
+    paginate_by = 50
 
     def get_queryset(self):
         q = Q()
@@ -243,6 +245,7 @@ class CreateMatchingRevenueView(CreateView):
 class ExpenseListView(ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
+    paginate_by = 50
 
     def get_queryset(self):
         query = self.request.GET.get('q')
@@ -256,6 +259,7 @@ class ExpenseListView(ListView):
 class RevenueListView(ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'
+    paginate_by = 50
 
     def get_queryset(self):
         query = self.request.GET.get('q')
@@ -424,6 +428,7 @@ class RawInvoiceListView(ListView):
     model = Raw_Invoice
     template_name = 'transactions/raw_invoice_list.html'
     success_url = reverse_lazy('raw_invoices')
+    paginate_by = 50
 
     def get_queryset(self):
         return Raw_Invoice.objects.filter(date_filed__isnull=True)
