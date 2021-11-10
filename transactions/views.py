@@ -20,6 +20,7 @@ import os, sys
 from decimal import Decimal
 from django.conf import settings
 
+# Initialize logging
 # Instantiates a client
 client = google.cloud.logging.Client()
 
@@ -28,7 +29,6 @@ client = google.cloud.logging.Client()
 # Python logging module. By default this captures all logs
 # at INFO level and higher
 client.setup_logging()
-
 
 class HomePageView(TemplateView):
     template_name = 'home.html'
@@ -271,13 +271,14 @@ class ExpenseUpdateView(UpdateView):
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
     success_url = reverse_lazy('expense_list')
-
+    
     def form_valid(self, form):
+        
         # grab previous expense from the database
         # Expense.objects.get(pk=pk)
         previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
         updated_expense = form.save(commit=False)
-        logging.info('Updating expense: Changed_data {}'.format(previous_expense.ok, form.changed_data))
+        logging.info('Updating expense: Changed_data {}'.format(previous_expense.pk, form.changed_data))
         if 'document_image' in form.changed_data:
             logging.info('Document image was changed')
             logging.info('Previous document was {}'.format(previous_expense.document_image.name))
@@ -297,7 +298,6 @@ class RevenueUpdateView(UpdateView):
     form_class = CreateRevenueForm
     template_name = 'transactions/revenue_edit.html'
     success_url = reverse_lazy('revenue_list')
-    
     def form_valid(self, form):
         # grab previous revenue from the database
         # Revenue.objects.get(pk=pk)

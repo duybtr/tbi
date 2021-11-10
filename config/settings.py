@@ -15,6 +15,8 @@ import io
 import os
 import environ
 from google.cloud import secretmanager
+import google.cloud.logging
+
 
 # Initialise environment variables
 env = environ.Env()
