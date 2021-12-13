@@ -159,7 +159,7 @@ class UnmatchedTransactionListView(ListView):
             q = q & Q(transaction_description__icontains=query)
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
-        q = Q(match_id=0)
+        q = q & Q(match_id=0)
         return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
 
 class TransactionUpdateView(UpdateView):
