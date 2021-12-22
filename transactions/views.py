@@ -245,6 +245,7 @@ class CreateMatchingRevenueView(CreateView):
 class ExpenseListView(ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
+    context_object_name = 'expenses'
     paginate_by = 50
 
     def get_queryset(self):
@@ -253,12 +254,13 @@ class ExpenseListView(ListView):
             return Expense.objects.all()
         else:
             return Expense.objects.filter(
-                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(expense)
+                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             )
             
 class RevenueListView(ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'
+    context_object_name = 'revenues'
     paginate_by = 50
 
     def get_queryset(self):
@@ -267,7 +269,7 @@ class RevenueListView(ListView):
             return Revenue.objects.all()
         else:
             return Revenue.objects.filter(
-                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(revenue)
+                Q(address__address__address__icontains=query) | Q(note__icontains=query) 
             )
 
 class ExpenseUpdateView(UpdateView):

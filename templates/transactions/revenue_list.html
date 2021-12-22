@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block content %}
-<form class="form-inline mt-2 mt-md-0" action="{%url 'expense_list' %}" method="get">
+<form class="form-inline mt-2 mt-md-0" action="" method="get">
   <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
 </form>
 
@@ -19,7 +19,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for revenue in object_list %}
+      {% for revenue in revenues %}
       <tr>
         <td>{{ revenue.record_date }}</td>
         <td>{{ revenue.address }}</td>
