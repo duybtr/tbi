@@ -10,7 +10,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
-from django.db.models import Q
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from common.utils import store_files, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file
 from google.cloud import storage
 import logging
@@ -247,14 +248,16 @@ class ExpenseListView(ListView):
     template_name = 'transactions/expense_list.html'
     context_object_name = 'expenses'
     paginate_by = 50
+    ordering = ['id']
 
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query is None:
             return Expense.objects.all()
         else:
-            return Expense.objects.filter(
-                Q(address__address__address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
+            queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
+            return queryset.filter(
+                Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             )
             
 class RevenueListView(ListView):

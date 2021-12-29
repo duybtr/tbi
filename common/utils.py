@@ -32,6 +32,9 @@ def store_in_gcs(files, bucket, blob_prefix):
             blob.content_type = 'image/jpeg'
         elif file.name.lower().endswith(('csv','dat')):
             blob.content_type = 'text/plain'
+        
+        #if blob.exists(client):
+            #raise Exception('File already exists')
         blob.upload_from_file(file)
 
 def list_blobs(folder_name):

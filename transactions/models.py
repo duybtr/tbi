@@ -109,6 +109,9 @@ class Raw_Invoice(models.Model):
         super().save(*args, **kwargs)
         if self.invoice_image.name:
             os.remove(os.path.join(settings.MEDIA_ROOT, self.invoice_image.name))
+    
+    def __str__(self):
+        return self.invoice_image.name
 
 
 class Record(models.Model):
