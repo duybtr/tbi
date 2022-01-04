@@ -6,6 +6,9 @@ from google.cloud import storage
 GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
 def format_for_storage(filename):
+    # maybe use regex here instead
+    filename = filename.replace('+', 'and')
+    filename = filename.replace('&', 'and')
     return filename.replace(' ', '_')
 
 def create_or_retrieve(bucket):
