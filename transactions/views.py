@@ -5,7 +5,7 @@ import csv, io
 from django.shortcuts import render
 from django.contrib import messages
 from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -437,6 +437,12 @@ class RawInvoiceListView(ListView):
 
     def get_queryset(self):
         return Raw_Invoice.objects.filter(date_filed__isnull=True)
+
+class RawInvoiceEditView(UpdateView):
+    model = Raw_Invoice
+    form_class = RawInvoiceUpdateForm
+    template_name = 'transactions/raw_invoice_edit.html'
+    success_url = reverse_lazy('raw_invoices')
 
 class FileInvoiceView(UpdateView):
     model = Expense

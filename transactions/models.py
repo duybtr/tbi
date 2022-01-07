@@ -88,6 +88,8 @@ class Raw_Invoice(models.Model):
     upload_date = models.DateField(auto_now=True)
     invoice_image = models.FileField()
     date_filed = models.DateTimeField(blank=True, null=True)
+    need_review = models.BooleanField(default=False)
+    note = models.TextField(max_length = 500, default="", blank=True, null=True)
     author = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE,
@@ -127,7 +129,7 @@ class Record(models.Model):
     )
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     document_image = models.FileField(blank=True, null=True)
-    note = models.TextField(max_length = 500)
+    note = models.TextField(max_length = 500, blank=True, null=True)
 
     date_filed = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(

@@ -1,6 +1,6 @@
 from os import path
 from django import forms
-from .models import Transaction, Expense, Revenue, Statement
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
 from django.forms.widgets import ClearableFileInput
 class CustomClearableFileInput(ClearableFileInput):
     def get_context(self, name, value, attrs):
@@ -20,6 +20,11 @@ class TransactionUpdateForm(forms.ModelForm):
    class Meta:
        model = Transaction
        fields = '__all__'
+
+class RawInvoiceUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Raw_Invoice
+        exclude = ['upload_date','invoice_image','date_filed','author']
 
 class CreateExpenseForm(forms.ModelForm):
     #document_image = forms.FileField(widget=CustomClearableFileInput)

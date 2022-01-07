@@ -26,6 +26,7 @@ from .views import (
     MatchingRevenueListView,
     UploadMultipleInvoicesView,
     RawInvoiceListView,
+    RawInvoiceEditView,
     match_expense,
     match_revenue,
     remove_match,
@@ -60,6 +61,7 @@ urlpatterns = [
     path('<int:transaction_pk>/remove_match', remove_match, name='remove_match'),
     path('<int:pk>/transaction_delete', TransactionDeleteView.as_view(), name='transaction_delete'),
     path('raw_invoices/', RawInvoiceListView.as_view(), name='raw_invoices'),
+    path('<int:pk>/raw_invoice_edit/', RawInvoiceEditView.as_view(), name='raw_invoice_edit'),
     path('<int:pk>/file_invoice/', FileInvoiceView.as_view(), name='file_invoice'),
 
 ]

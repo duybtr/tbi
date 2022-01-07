@@ -11,6 +11,7 @@
       <tr>
         <th scope="col">Upload Date</th>
         <th scope="col">Invoice Image</th>
+        <th scope="col">Note</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +19,9 @@
       <tr>
         <td>{{ invoice.upload_date }}</td>
         <td><a href="{{ invoice.get_full_path_to_gcs }}">{{ invoice.invoice_image.name }}</a></td>
+        <td>{{ invoice.note }}</td>
         <td><a href="{% url 'file_invoice' invoice.pk %}">File</a></td>
+        <td><a href="{% url 'raw_invoice_edit' invoice.pk %}">Edit</a></td>
       </tr>
       {% endfor %}
     </tbody>
