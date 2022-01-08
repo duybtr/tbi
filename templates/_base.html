@@ -20,6 +20,7 @@
       <nav class="my-2 my-md-0 mr-md-3">
         <!-- <a class="p-2 text-dark" href="{% url 'about' %}">About</a> -->
         <a class="p-2 text-dark" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
+        <a class="p-2 text-dark" href="{% url 'review_invoices' %}">Review Invoices({{ review_invoice_count }})</a>
         <a class="p-2 text-dark" href="{% url 'unmatched_transaction_list' %}">Unmatched Transactions({{ unmatched_transactions_count }})</a>
         <a class="p-2 text-dark" href="{% url 'upload_invoice' %}">Log an expense</a>
         <a class="p-2 text-dark" href="{% url 'transaction_list' %}">Transactions</a>

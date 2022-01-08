@@ -21,7 +21,11 @@
         <td><a href="{{ invoice.get_full_path_to_gcs }}">{{ invoice.invoice_image.name }}</a></td>
         <td>{{ invoice.note }}</td>
         <td><a href="{% url 'file_invoice' invoice.pk %}">File</a></td>
+        {% if invoice.need_review %}
+        <td><a href="{% url 'review_invoice_edit' invoice.pk %}">Edit</a></td>
+        {% else %}
         <td><a href="{% url 'raw_invoice_edit' invoice.pk %}">Edit</a></td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

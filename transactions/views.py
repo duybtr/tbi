@@ -415,16 +415,23 @@ class UploadMultipleInvoicesView(FormView):
     success_url = reverse_lazy('upload_multiple_invoices')
 
     def post(self, request, *args, **kwargs):
+        directory = 'unfiled_invoices'
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         files = request.FILES.getlist('invoices')
         if form.is_valid():
             for f in files:
-                Raw_Invoice.objects.update_or_create(
+                invoice = Raw_Invoice.objects.create(
                     upload_date = datetime.now(),
                     invoice_image = f,
                     author = request.user
                 )
+                full_file_path = settings.MEDIA_ROOT + '/' + f.name
+                with open(full_file_path, "rb") as my_file:
+                    store_in_gcs([my_file], GCS_ROOT_BUCKET, directory)
+                invoice.save()
+                os.remove(full_file_path)
+
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -436,7 +443,22 @@ class RawInvoiceListView(ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        return Raw_Invoice.objects.filter(date_filed__isnull=True)
+        return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=False))
+
+class ReviewInvoiceListView(ListView):
+    model = Raw_Invoice
+    template_name = 'transactions/raw_invoice_list.html'
+    success_url = reverse_lazy('raw_invoices')
+    paginate_by = 50
+
+    def get_queryset(self):
+        return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=True))
+
+class ReviewInvoiceEditView(UpdateView):
+    model = Raw_Invoice
+    form_class = RawInvoiceUpdateForm
+    template_name = 'transactions/raw_invoice_edit.html'
+    success_url = reverse_lazy('review_invoices')
 
 class RawInvoiceEditView(UpdateView):
     model = Raw_Invoice

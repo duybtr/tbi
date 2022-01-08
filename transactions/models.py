@@ -103,15 +103,6 @@ class Raw_Invoice(models.Model):
     def get_relative_path_to_gcs(self):
         return '{}/{}'.format(self.directory, self.invoice_image.name)
     
-    def save(self, *args, **kwargs):
-        ## Looks a bit hacky but this needs to happen in this exact sequence. 
-        # If we try to delete the file before saving, then we would get the 'file is being processed error'.
-        if self.invoice_image.name:
-            store_in_gcs([self.invoice_image], GCS_ROOT_BUCKET, self.directory)
-        super().save(*args, **kwargs)
-        if self.invoice_image.name:
-            os.remove(os.path.join(settings.MEDIA_ROOT, self.invoice_image.name))
-    
     def __str__(self):
         return self.invoice_image.name
 
