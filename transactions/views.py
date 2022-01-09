@@ -12,7 +12,7 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from django.views.generic import ListView
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
-from common.utils import store_files, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file
+from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file
 from google.cloud import storage
 import logging
 import google.cloud.logging
@@ -426,9 +426,9 @@ class UploadMultipleInvoicesView(FormView):
                     invoice_image = f,
                     author = request.user
                 )
-                full_file_path = settings.MEDIA_ROOT + '/' + f.name
-                with open(full_file_path, "rb") as my_file:
-                    store_in_gcs([my_file], GCS_ROOT_BUCKET, directory)
+                full_file_path = settings.MEDIA_ROOT + '/' + format_for_storage(f.name)
+                with open(full_file_path, "rb") as current_file:
+                    store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
                 invoice.save()
                 os.remove(full_file_path)
 

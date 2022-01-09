@@ -2,6 +2,8 @@
 # gcloud auth application-default login
 
 from google.cloud import storage
+import os
+
 
 GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
@@ -25,7 +27,7 @@ def store_in_gcs(files, bucket, blob_prefix):
     client = storage.Client()
     bucket = create_or_retrieve(bucket)
     for file in files:
-        generated_filename = format_for_storage(file.name)
+        generated_filename = format_for_storage(os.path.basename(file.name))
         blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
         if file.name.lower().endswith('pdf'):
             blob.content_type = 'application/pdf'
@@ -35,9 +37,6 @@ def store_in_gcs(files, bucket, blob_prefix):
             blob.content_type = 'image/jpeg'
         elif file.name.lower().endswith(('csv','dat')):
             blob.content_type = 'text/plain'
-        
-        #if blob.exists(client):
-            #raise Exception('File already exists')
         blob.upload_from_file(file)
 
 def list_blobs(folder_name):
