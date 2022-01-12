@@ -157,7 +157,13 @@ class UnmatchedTransactionListView(ListView):
             end_date = datetime.now()
         q = Q(transaction_date__range=[start_date, end_date])
         if not query is None:
-            q = q & Q(transaction_description__icontains=query)
+            try:
+                target_amount = float(query)
+                lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
+                q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
+                q = q | Q(transaction_description__icontains=query)
+            except ValueError:
+                q = q & Q(transaction_description__icontains=query)
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
         q = q & Q(match_id=0)
@@ -396,7 +402,9 @@ class MatchingRevenueListView(ListView):
 def match_expense(request, transaction_pk, expense_pk):
     #logging.info("Transaction pk: {} -  Expense pk: {}".format(transaction_pk, expense_pk))
     matching_expense = Expense.objects.get(pk=expense_pk)
+    #target_transaction = Transactions.objects.get(pk=transaction_pk)
     Transaction.objects.filter(pk=transaction_pk).update(match_id=expense_pk)
+    #Expense.objects.filter(pk=expense_pk).update(amount=-1*target_transaction.transaction_amount)
     return HttpResponseRedirect(reverse('transaction_list'))
 
 def match_revenue(request, transaction_pk, revenue_pk):
