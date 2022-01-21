@@ -2,6 +2,7 @@
 # gcloud auth application-default login
 
 from google.cloud import storage
+from django.core.paginator import Paginator
 import os
 
 
@@ -61,3 +62,8 @@ def delete_file(file, blob_prefix):
     generated_filename = format_for_storage(file.name)
     blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
     blob.delete()
+
+def get_paginator_object(result_set, max_per_page, request):
+    paginator = Paginator(result_set, max_per_page)
+    page_num = request.GET.get('page')
+    return paginator.get_page(page_num)

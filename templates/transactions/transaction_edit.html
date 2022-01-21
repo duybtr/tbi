@@ -6,21 +6,6 @@
     <form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
         {{ form.non_field_errors }}
         <div class="fieldWrapper">
-            {{ form.transaction_date.errors }}
-            <label for="{{ form.transaction_date.id_for_label }}">Transaction Date:</label>
-            {{ form.transaction_date }}
-        </div>
-        <div class="fieldWrapper">
-            {{ form.account_number.errors }}
-            <label for="{{ form.account_number.id_for_label }}">Account Number:</label>
-            {{ form.account_number }}
-        </div>
-        <div class="fieldWrapper">
-            {{ form.statement_type.errors }}
-            <label for="{{ form.statement_type.id_for_label }}">Statement Type:</label>
-            {{ form.statement_type }}
-        </div>
-        <div class="fieldWrapper">
             {{ form.transaction_description.errors }}
             <label for="{{ form.transaction_description.id_for_label }}">Transaction Description</label>
             {{ form.transaction_description }}
@@ -36,16 +21,21 @@
             {{transaction.match_id}} &nbsp;&nbsp;
             <a href="{% url 'remove_match' transaction.pk %}">Remove match</a>
             {% else %}
-            None &nbsp;&nbsp;
-            <a href="{% url 'match_list' transaction.pk %}">Match</a><br />
+                None &nbsp;&nbsp;
+                
+                {% if transaction.transaction_amount < 0 %}
+                    <a href="{% url 'matching_expense_list' transaction.pk %}">Match</a><br />
+                {% else %}
+                    <a href="{% url 'matching_revenue_list' transaction.pk %}">Match</a><br />
+                {% endif %}
             {% endif %}
         </div>
-        
         <div class="fieldWrapper">
-            {{ form.accounting_classification.errors }}
-            <label for="{{ form.accounting_classification.id_for_label }}">Accounting Classification</label>
-            {{ form.accounting_classification }}
+            {{ form.is_ignored.errors }}
+            <label for="{{ form.is_ignored.id_for_label }}">Can Ignore?</label>
+            {{ form.is_ignored }}
         </div>
+        
         
         <button class="btn btn-info ml-2" type="submit">Update</button>
     </form>

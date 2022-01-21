@@ -12,8 +12,9 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from django.views.generic import ListView
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
-from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file
+from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file, get_paginator_object
 from google.cloud import storage
+from django.core.paginator import Paginator
 import logging
 import google.cloud.logging
 from datetime import datetime
@@ -119,8 +120,7 @@ class StatementDeleteView(DeleteView):
 class TransactionListView(ListView):
     model = Transaction
     context_object_name = 'transactions'
-    template = 'transactions/transaction_list.html'
-    paginate_by = 50
+    template_name = 'transactions/transaction_list.html'
 
     def get_queryset(self):
         q = Q()
@@ -138,12 +138,16 @@ class TransactionListView(ListView):
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
         return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
+    
+    def get(self, request, *args, **kwargs):
+        results = self.get_queryset()
+        page_obj = get_paginator_object(results, 50, request)
+        return render(request, self.template_name, {'page_obj': page_obj})
 
 class UnmatchedTransactionListView(ListView):
     model = Transaction
     context_object_name = 'transactions'
-    template = 'transactions/transaction_list.html'
-    paginate_by = 50
+    template_name = 'transactions/transaction_list.html'
 
     def get_queryset(self):
         q = Q()
@@ -166,8 +170,13 @@ class UnmatchedTransactionListView(ListView):
                 q = q & Q(transaction_description__icontains=query)
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
-        q = q & Q(match_id=0)
+        q = q & Q(match_id=0) & Q(is_ignored=False)
         return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
+
+    def get(self, request, *args, **kwargs):
+        results = self.get_queryset()
+        page_obj = get_paginator_object(results, 50, request)
+        return render(request, self.template_name, {'page_obj': page_obj})
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -176,10 +185,21 @@ class TransactionUpdateView(UpdateView):
     success_url = reverse_lazy('transaction_list')
 
     def get(self, request, *args, **kwargs):
-        form = self.form_class(initial=self.initial)
         transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
-        return render(request, self.template_name, {'form': form, 'transaction': transaction})
+        form = self.form_class(initial={
+            'transaction_amount':transaction.transaction_amount,
+            'transaction_description':transaction.transaction_description,
+            'transaction_date':transaction.transaction_date,
+            'statement_type':transaction.statement.statement_type
 
+        })
+        return render(request, self.template_name, {'form': form, 'transaction': transaction})
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(self.success_url)    
+        return render(request, self.template_name, {'form': form})
 class TransactionDeleteView(DeleteView):
     model = Transaction
     template_name = 'transactions/transaction_delete.html'
@@ -265,7 +285,10 @@ class ExpenseListView(ListView):
             return queryset.filter(
                 Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             )
-            
+    def get(self, request, *args, **kwargs):
+        results = self.get_queryset()
+        page_obj = get_paginator_object(results, 50, request)
+        return render(request, self.template_name, {'page_obj': page_obj})
 class RevenueListView(ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'
@@ -280,6 +303,11 @@ class RevenueListView(ListView):
             return Revenue.objects.filter(
                 Q(address__address__address__icontains=query) | Q(note__icontains=query) 
             )
+    
+    def get(self, request, *args, **kwargs):
+        results = self.get_queryset()
+        page_obj = get_paginator_object(results, 50, request)
+        return render(request, self.template_name, {'page_obj': page_obj})
 
 class ExpenseUpdateView(UpdateView):
     model = Expense

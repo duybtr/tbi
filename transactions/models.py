@@ -52,6 +52,7 @@ class Transaction(models.Model):
     transaction_description = models.TextField(max_length=500)
     transaction_amount = models.DecimalField(max_digits=20, decimal_places=2)
     match_id = models.BigIntegerField(default=0)
+    is_ignored = models.BooleanField(default=False)
     
     def __str__(self):
         return self.transaction_description

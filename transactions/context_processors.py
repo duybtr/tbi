@@ -22,7 +22,7 @@ def count_review_invoices(request):
 
 def count_transactions(request):
     if request.user.is_authenticated:
-        unmatched_transactions_count = Transaction.objects.filter(match_id=0).count()
+        unmatched_transactions_count = Transaction.objects.filter(Q(match_id=0) & Q(is_ignored=False)).count()
     else:
         unmatched_transactions_count = 0
     return {

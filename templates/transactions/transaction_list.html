@@ -1,7 +1,7 @@
-{% extends '_base.html' %}
+{% extends '_base_paginated_results.html' %}
 {% load humanize %}
 
-{% block content %}
+{% block list_content %}
 
 <form class="form-inline mt-2 mt-md-0" action="" method="GET">
   <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
@@ -24,7 +24,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for transaction in transactions %}
+      {% for transaction in page_obj.object_list %}
       <tr>
         <td>{{ transaction.transaction_date }}</td>
         <td>{{ transaction.statement.account_number }}</td>
@@ -46,22 +46,4 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <div class="pagination">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-        {% endif %}
-
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
-
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-        {% endif %}
-    </span>
-
-{% endblock content %}
+{% endblock list_content %}
