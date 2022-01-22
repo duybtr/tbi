@@ -171,7 +171,7 @@ class UnmatchedTransactionListView(ListView):
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
         q = q & Q(match_id=0) & Q(is_ignored=False)
-        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
+        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', '-transaction_date')
 
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
@@ -286,7 +286,7 @@ class ExpenseListView(ListView):
             queryset = queryset.filter(
                 Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             )
-        return queryset.order_by('record_date','address__address__address')
+        return queryset.order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
@@ -306,7 +306,7 @@ class RevenueListView(ListView):
             queryset = Revenue.objects.filter(
                 Q(address__address__address__icontains=query) | Q(note__icontains=query) 
             )
-        return queryset.order_by('record_date','address__address__address')
+        return queryset.order_by('-record_date','address__address__address')
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
