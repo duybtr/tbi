@@ -278,13 +278,15 @@ class ExpenseListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        queryset = None
         if query is None:
-            return Expense.objects.all()
+            queryset = Expense.objects.all()
         else:
             queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
-            return queryset.filter(
+            queryset = queryset.filter(
                 Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             )
+        return queryset.order_by('record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
@@ -297,12 +299,14 @@ class RevenueListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        queryset = None
         if query is None:
-            return Revenue.objects.all()
+            queryset = Revenue.objects.all()
         else:
-            return Revenue.objects.filter(
+            queryset = Revenue.objects.filter(
                 Q(address__address__address__icontains=query) | Q(note__icontains=query) 
             )
+        return queryset.order_by('record_date','address__address__address')
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
