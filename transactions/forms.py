@@ -19,7 +19,7 @@ class StatementUploadForm(forms.ModelForm):
 class TransactionUpdateForm(forms.ModelForm):
    class Meta:
        model = Transaction
-       fields = '__all__'
+       exclude = ['statement', 'transaction_date', 'match_id']
 
 class RawInvoiceUpdateForm(forms.ModelForm):
     class Meta:

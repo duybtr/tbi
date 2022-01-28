@@ -190,14 +190,18 @@ class TransactionUpdateView(UpdateView):
             'transaction_amount':transaction.transaction_amount,
             'transaction_description':transaction.transaction_description,
             'transaction_date':transaction.transaction_date,
-            'statement_type':transaction.statement.statement_type
-
+            'statement_type':transaction.statement.statement_type,
+            'is_ignored': transaction.is_ignored
         })
         return render(request, self.template_name, {'form': form, 'transaction': transaction})
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST, request.FILES)
+        form = self.form_class(request.POST)
+        transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         if form.is_valid():
-            form.save()
+            updated_transaction = form.save(commit=False)
+            transaction.is_ignored = updated_transaction.is_ignored
+            transaction.transaction_description = updated_transaction.transaction_description
+            transaction.save()
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 class TransactionDeleteView(DeleteView):
