@@ -510,6 +510,17 @@ class RawInvoiceEditView(UpdateView):
     template_name = 'transactions/raw_invoice_edit.html'
     success_url = reverse_lazy('raw_invoices')
 
+class RawInvoiceDeleteView(DeleteView):
+    model = Raw_Invoice
+    template_name = 'transactions/raw_invoice_delete.html'
+    success_url = reverse_lazy('raw_invoices')
+
+    def delete(self, *args, **kwargs):
+        raw_invoice = Raw_Invoice.objects.get(pk=self.kwargs.get('pk'))
+        if raw_invoice.invoice_image.name:
+            delete_file(raw_invoice.invoice_image, Raw_Invoice.directory)
+        return super(RawInvoiceDeleteView, self).delete(*args, **kwargs)
+
 class FileInvoiceView(UpdateView):
     model = Expense
     form_class = CreateExpenseForm
