@@ -1,0 +1,1 @@
+C:\Dev\cloud_sql_proxy.exe -instances=tbi-finance:us-central1:tbi-postgres=tcp:5432

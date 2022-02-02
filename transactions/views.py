@@ -286,10 +286,16 @@ class ExpenseListView(ListView):
         if query is None:
             queryset = Expense.objects.all()
         else:
-            queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
-            queryset = queryset.filter(
-                Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
-            )
+            #queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
+            queryset = Expense.objects.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type'))
+
+            #queryset = queryset.filter(
+            #    Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
+            #)
+            q = Q()
+            for word in query.split(" "):
+                q = q & Q(searchable_text__icontains=word)
+            queryset = queryset.filter(q)
         return queryset.order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
