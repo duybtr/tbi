@@ -38,4 +38,7 @@ class CreateRevenueForm(forms.ModelForm):
         exclude = ['author', 'date_uploaded']
 
 class UploadMultipleInvoicesForm(forms.Form):
+    #choices = [(2021,2021),(2022,2022)]
+    #tax_year = forms.CharField(max_length=10, choices = choices, default=2021)
     invoices = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True})) 
+    

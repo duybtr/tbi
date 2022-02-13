@@ -482,9 +482,9 @@ class UploadMultipleInvoicesView(FormView):
                 invoice.save()
                 os.remove(full_file_path)
 
-            return self.form_valid(form)
+            return HttpResponseRedirect(self.success_url)
         else:
-            return self.form_invalid(form)
+            return render(request, self.template_name, {'form': form})
 
 class RawInvoiceListView(ListView):
     model = Raw_Invoice

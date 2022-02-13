@@ -20,11 +20,11 @@
       <nav class="my-2 my-md-0 mr-md-3">
         <!-- <a class="p-2 text-dark" href="{% url 'about' %}">About</a> -->
         <a class="p-2 text-dark" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
-        <a class="p-2 text-dark" href="{% url 'review_invoices' %}">Review Invoices({{ review_invoice_count }})</a>
+        <a class="p-2 text-dark" href="{% url 'review_invoices' %}">Invoice Issues({{ review_invoice_count }})</a>
         <a class="p-2 text-dark" href="{% url 'unmatched_transaction_list' %}">Unmatched Transactions({{ unmatched_transactions_count }})</a>
         <a class="p-2 text-dark" href="{% url 'upload_invoice' %}">Log an expense</a>
+        <a class="p-2 text-dark" href="{% url 'upload_check' %}">Log a revenue</a>
         <a class="p-2 text-dark" href="{% url 'transaction_list' %}">Transactions</a>
-        <a class="p-2 text-dark" href="{% url 'upload_check' %}">Upload a check</a>
         <a class="p-2 text-dark" href="{% url 'expense_list' %}">Expenses</a>
         <a class="p-2 text-dark" href="{% url 'revenue_list' %}">Revenues</a>
         <a class="p-2 text-dark" href="{% url 'upload_csv' %}">Upload a statement</a>
@@ -49,5 +49,16 @@
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script>
+    // this is to fix the issue with multiple submit
+    $(function() {
+      $("#preventDouble").click(function(){
+        $(this).unbind("click");
+        $(this).click(function(){return false;});
+      });
+    });
+    
+
+  </script>
 </body>
 </html>
