@@ -447,13 +447,13 @@ def match_expense(request, transaction_pk, expense_pk):
     #target_transaction = Transactions.objects.get(pk=transaction_pk)
     Transaction.objects.filter(pk=transaction_pk).update(match_id=expense_pk)
     #Expense.objects.filter(pk=expense_pk).update(amount=-1*target_transaction.transaction_amount)
-    return HttpResponseRedirect(reverse('transaction_list'))
+    return HttpResponseRedirect(reverse('unmatched_transaction_list'))
 
 def match_revenue(request, transaction_pk, revenue_pk):
     #logging.info("Transaction pk: {} -  Revenue pk: {}".format(transaction_pk, revenue_pk))
     matching_revenue = Revenue.objects.get(pk=revenue_pk)
     Transaction.objects.filter(pk=transaction_pk).update(match_id=revenue_pk)
-    return HttpResponseRedirect(reverse('transaction_list'))
+    return HttpResponseRedirect(reverse('unmatched_transaction_list'))
 
 def remove_match(request, transaction_pk):
     Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
@@ -530,7 +530,7 @@ class RawInvoiceDeleteView(DeleteView):
 class FileInvoiceView(UpdateView):
     model = Expense
     form_class = CreateExpenseForm
-    success_url = reverse_lazy('expense_list')
+    success_url = reverse_lazy('raw_invoices')
     template_name = 'transactions/file_invoice.html'
 
     def get(self, request, *args, **kwargs):
