@@ -172,5 +172,4 @@ class Revenue(Record):
         ('rent', 'Rent')
     )
     revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
-    
 

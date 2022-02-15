@@ -417,6 +417,8 @@ class MatchingExpenseListView(ListView):
             amount__gte=target_transaction_amount_lower
         ).exclude(
             id__in=matched_expenses
+        ).order_by(
+            '-amount'
         )
         return context
 
@@ -566,3 +568,4 @@ class FileInvoiceView(UpdateView):
                         expense_model.get_relative_path_to_gcs())
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
+
