@@ -155,7 +155,8 @@ class Expense(Record):
         ('roof', 'Roof'),
         ('landscaping', 'Landscaping'),
         ('commission', 'Commission'),
-        ('taxes_and_fess', 'Taxes & Fees')
+        ('taxes_and_fess', 'Taxes & Fees'),
+        ('payroll', 'Payroll')
     )
     raw_invoice = models.ForeignKey(
         Raw_Invoice,
