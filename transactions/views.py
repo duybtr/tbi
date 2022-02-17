@@ -474,6 +474,8 @@ class MatchingRevenueListView(ListView):
             amount__gte=target_transaction_amount_lower
         ).exclude(
             id__in=matched_revenues
+        ).order_by(
+            '-amount'
         )
         return context
     
