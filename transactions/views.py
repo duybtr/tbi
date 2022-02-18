@@ -171,7 +171,7 @@ class UnmatchedTransactionListView(ListView):
         if not statement_id is None:
             q = q & Q(statement_id__exact=statement_id)
         q = q & Q(match_id=0) & Q(is_ignored=False)
-        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', '-transaction_date')
+        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', '-transaction_date','-transaction_amount')
 
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
