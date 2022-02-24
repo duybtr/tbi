@@ -307,6 +307,32 @@ class CreateMatchingRevenueView(CreateView):
         Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=revenue_model.pk)
         return super().form_valid(form)
 
+class CreateMatchingExpenseView(CreateView):
+    model = Expense
+    form_class = CreateExpenseForm
+    template_name = 'transactions/create_record.html'
+    success_url = reverse_lazy('expense_list')
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
+        context['target_transaction'] = target_transaction
+        form = self.form_class(initial={
+            'record_date':target_transaction.transaction_date, 
+            'amount':-1*target_transaction.transaction_amount, 
+            'note':target_transaction.transaction_description
+        })               
+        context['form'] = form
+        return render(request, self.template_name, context)
+    
+    def form_valid(self, form):
+        expense_model = form.save(commit=False)
+        expense_model.author = self.request.user
+        form.save()
+        Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=expense_model.pk)
+        return super().form_valid(form)
+
+
 class ExpenseListView(ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
