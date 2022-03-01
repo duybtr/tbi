@@ -87,7 +87,7 @@ class Raw_Invoice(models.Model):
     directory = 'unfiled_invoices'
     upload_date = models.DateField(auto_now=True)
     invoice_image = models.FileField()
-    #tax_year = models.IntegerField()
+    tax_year = models.IntegerField()
     date_filed = models.DateTimeField(blank=True, null=True)
     need_review = models.BooleanField(default=False)
     note = models.TextField(max_length = 500, default="", blank=True, null=True)

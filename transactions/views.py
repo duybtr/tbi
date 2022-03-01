@@ -534,11 +534,13 @@ class UploadMultipleInvoicesView(FormView):
         form = self.get_form(form_class)
         files = request.FILES.getlist('invoices')
         if form.is_valid():
+            tax_year = form.cleaned_data['tax_year']
             for f in files:
                 invoice = Raw_Invoice.objects.create(
                     upload_date = datetime.now(),
                     invoice_image = f,
-                    author = request.user
+                    author = request.user,
+                    tax_year = int(tax_year)
                 )
                 full_file_path = settings.MEDIA_ROOT + '/' + format_for_storage(f.name)
                 with open(full_file_path, "rb") as current_file:

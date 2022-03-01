@@ -2,6 +2,8 @@ from os import path
 from django import forms
 from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
 from django.forms.widgets import ClearableFileInput
+from datetime import datetime
+
 class CustomClearableFileInput(ClearableFileInput):
     def get_context(self, name, value, attrs):
         #value.name = path.basename(value.name)
@@ -38,7 +40,14 @@ class CreateRevenueForm(forms.ModelForm):
         exclude = ['author', 'date_uploaded']
 
 class UploadMultipleInvoicesForm(forms.Form):
-    #choices = [(2021,2021),(2022,2022)]
-    #tax_year = forms.CharField(max_length=10, choices = choices, default=2021)
+    current_year = datetime.now().year
+    years = [(str(i), str(i)) for i in range(current_year-2, current_year+2)]
+    tax_year = forms.ChoiceField(
+        required=False,
+        widget=forms.Select,
+        choices=years,
+        initial=str(current_year),
+    )
     invoices = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True})) 
+    
     
