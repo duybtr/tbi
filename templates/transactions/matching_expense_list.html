@@ -37,7 +37,7 @@
 {{ object_list|length }} potential match found:
 {% endif %}
 </h1>
-<a href="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</a>
+<a class="btn btn-primary" role="button" href="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</a></button>
 <table class="table table-striped">
     <thead>
       <tr>

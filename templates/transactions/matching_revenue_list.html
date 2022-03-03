@@ -37,7 +37,7 @@
 {{ object_list|length }} potential match found:
 {% endif %}
 </h1>
-<a href="{% url 'create_matching_revenue' target_transaction.pk %}">Add a revenue</a>
+<a class="btn btn-primary" role="button" href="{% url 'create_matching_revenue' target_transaction.pk %}">Add a revenue</a>
 <table class="table table-striped">
     <thead>
       <tr>

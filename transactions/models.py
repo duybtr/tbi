@@ -157,7 +157,8 @@ class Expense(Record):
         ('commission', 'Commission'),
         ('taxes_and_fess', 'Taxes & Fees'),
         ('payroll', 'Payroll'),
-        ('payroll tax', 'Payroll Tax')
+        ('payroll tax', 'Payroll Tax'),
+        ('discounts_and_cashbacks', 'Discounts and Cashbacks')
     )
     raw_invoice = models.ForeignKey(
         Raw_Invoice,
