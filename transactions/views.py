@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
-from django.db.models import Q, Value
+from django.db.models import Q, Value, TextField
 from django.db.models.functions import Concat
 from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file, get_paginator_object
 from google.cloud import storage
@@ -347,8 +347,7 @@ class ExpenseListView(ListView):
             queryset = Expense.objects.all()
         else:
             #queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
-            queryset = Expense.objects.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type'))
-
+            queryset = Expense.objects.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
             #queryset = queryset.filter(
             #    Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
             #)

@@ -78,7 +78,7 @@ class Rental_Unit(models.Model):
         on_delete=models.CASCADE,
         related_name='rental_units'
     )
-    suite = models.CharField(max_length=10, blank=True)
+    suite = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
@@ -150,6 +150,7 @@ class Expense(Record):
         ('trash', 'Trash'),
         ('water', 'Water'),
         ('power', 'Power'),
+        ('gas', 'Gas'),
         ('insurance', 'Insurance'),
         ('repair_maintenance', 'Repair and Maintenance'),
         ('roof', 'Roof'),
@@ -158,7 +159,7 @@ class Expense(Record):
         ('taxes_and_fess', 'Taxes & Fees'),
         ('payroll', 'Payroll'),
         ('payroll tax', 'Payroll Tax'),
-        ('discounts_and_cashbacks', 'Discounts and Cashbacks')
+        ('property_purchase', 'Property Purchase')
     )
     raw_invoice = models.ForeignKey(
         Raw_Invoice,
@@ -172,7 +173,8 @@ class Revenue(Record):
     record_dir = 'checks'
     REVENUE_TYPES = (
         ('reimb','Reimbursement'),
-        ('rent', 'Rent')
+        ('rent', 'Rent'),
+        ('discounts_and_cashbacks', 'Discounts and Cashbacks')
     )
     revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
 
