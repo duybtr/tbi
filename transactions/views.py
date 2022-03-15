@@ -467,8 +467,8 @@ class MatchingExpenseListView(ListView):
         #logging.info('kwargs {}'.format(self.kwargs.get('pk')))
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         matched_expenses = Transaction.objects.filter(transaction_amount__lt = 0).values_list('match_id', flat=True)
-        target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.2))
-        target_transaction_amount_lower = -1*(target_transaction.transaction_amount * Decimal(0.8))
+        target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.1))
+        target_transaction_amount_lower = -1*(target_transaction.transaction_amount * Decimal(0.9))
         context['target_transaction'] = target_transaction
         context['object_list'] = Expense.objects.filter(
             amount__lte=target_transaction_amount_upper
@@ -490,8 +490,8 @@ class MatchingRevenueListView(ListView):
         #logging.info('kwargs {}'.format(self.kwargs.get('pk')))
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         matched_revenues = Transaction.objects.filter(transaction_amount__gte = 0).values_list('match_id', flat=True)
-        target_transaction_amount_upper = target_transaction.transaction_amount * Decimal(1.2)
-        target_transaction_amount_lower = target_transaction.transaction_amount * Decimal(0.8)
+        target_transaction_amount_upper = target_transaction.transaction_amount * Decimal(1.1)
+        target_transaction_amount_lower = target_transaction.transaction_amount * Decimal(0.9)
         context['target_transaction'] = target_transaction
         context['object_list'] = Revenue.objects.filter(
             amount__lte=target_transaction_amount_upper

@@ -156,7 +156,7 @@ class Expense(Record):
         ('roof', 'Roof'),
         ('landscaping', 'Landscaping'),
         ('commission', 'Commission'),
-        ('taxes_and_fess', 'Taxes & Fees'),
+        ('taxes_and_fees', 'Taxes & Fees'),
         ('payroll', 'Payroll'),
         ('payroll tax', 'Payroll Tax'),
         ('property_purchase', 'Property Purchase')
