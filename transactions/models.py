@@ -21,7 +21,7 @@ class Statement(models.Model):
     account_number = models.CharField(max_length=4)
     statement_type = models.CharField(max_length=20, choices=choices)
     uploaded_file = models.FileField()
-    is_verified = models.BooleanField()
+    #is_verified = models.BooleanField()
     author = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE

@@ -122,7 +122,7 @@ class TransactionListView(ListView):
     context_object_name = 'transactions'
     template_name = 'transactions/transaction_list.html'
 
-    def get_queryset(self):
+    def add_filters(self):
         q = Q()
         query = self.request.GET.get('q')
         statement_id = self.request.GET.get('statement_id')
@@ -134,9 +134,17 @@ class TransactionListView(ListView):
             end_date = datetime.now()
         q = Q(transaction_date__range=[start_date, end_date])
         if not query is None:
-            q = q & Q(transaction_description__icontains=query)
-        if not statement_id is None:
-            q = q & Q(statement_id__exact=statement_id)
+            try:
+                target_amount = float(query)
+                lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
+                q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
+                q = q | Q(transaction_description__icontains=query)
+            except ValueError:
+                q = q & Q(transaction_description__icontains=query)
+        return q
+
+    def get_queryset(self):
+        q = self.add_filters()
         return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
     
     def get(self, request, *args, **kwargs):
@@ -144,73 +152,14 @@ class TransactionListView(ListView):
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
 
-class UnmatchedTransactionListView(ListView):
+class UnmatchedTransactionListView(TransactionListView):
     model = Transaction
     context_object_name = 'transactions'
     template_name = 'transactions/transaction_list.html'
-
-    def get_queryset(self):
-        q = Q()
-        query = self.request.GET.get('q')
-        statement_id = self.request.GET.get('statement_id')
-        start_date = self.request.GET.get('start_date')
-        if not start_date:
-            start_date = '2008-01-01' 
-        end_date = self.request.GET.get('end_date')
-        if not end_date:
-            end_date = datetime.now()
-        q = Q(transaction_date__range=[start_date, end_date])
-        if not query is None:
-            try:
-                target_amount = float(query)
-                lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
-                q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
-                q = q | Q(transaction_description__icontains=query)
-            except ValueError:
-                q = q & Q(transaction_description__icontains=query)
-        if not statement_id is None:
-            q = q & Q(statement_id__exact=statement_id)
+    def add_filters(self):
+        q = super().add_filters()
         q = q & Q(match_id=0) & Q(is_ignored=False)
-        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', '-transaction_date','-transaction_amount')
-
-    def get(self, request, *args, **kwargs):
-        results = self.get_queryset()
-        page_obj = get_paginator_object(results, 50, request)
-        return render(request, self.template_name, {'page_obj': page_obj})
-
-class NoMatchTransactionListView(ListView):
-    model = Transaction
-    context_object_name = 'transactions'
-    template_name = 'transactions/transaction_list.html'
-
-    def get_queryset(self):
-        q = Q()
-        query = self.request.GET.get('q')
-        statement_id = self.request.GET.get('statement_id')
-        start_date = self.request.GET.get('start_date')
-        if not start_date:
-            start_date = '2008-01-01' 
-        end_date = self.request.GET.get('end_date')
-        if not end_date:
-            end_date = datetime.now()
-        q = Q(transaction_date__range=[start_date, end_date])
-        if not query is None:
-            try:
-                target_amount = float(query)
-                lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
-                q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
-                q = q | Q(transaction_description__icontains=query)
-            except ValueError:
-                q = q & Q(transaction_description__icontains=query)
-        if not statement_id is None:
-            q = q & Q(statement_id__exact=statement_id)
-        q = q & Q(match_id=0) & Q(is_ignored=False)
-        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', '-transaction_date')
-
-    def get(self, request, *args, **kwargs):
-        results = self.get_queryset()
-        page_obj = get_paginator_object(results, 50, request)
-        return render(request, self.template_name, {'page_obj': page_obj})
+        return q
 
 class TransactionUpdateView(UpdateView):
     model = Transaction 
@@ -286,7 +235,7 @@ class CreateMatchingRevenueView(CreateView):
     model = Revenue
     form_class = CreateRevenueForm
     template_name = 'transactions/create_record.html'
-    success_url = reverse_lazy('revenue_list')
+    success_url = reverse_lazy('unmatched_transaction_list')
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -311,7 +260,7 @@ class CreateMatchingExpenseView(CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_record.html'
-    success_url = reverse_lazy('expense_list')
+    success_url = reverse_lazy('unmatched_transaction_list')
 
     def get(self, request, *args, **kwargs):
         context = {}
