@@ -1,0 +1,26 @@
+{% extends '_base_paginated_results.html' %}
+{% load humanize %}
+
+{% block list_content %}
+<form id='filters' class="form-inline mt-2 mt-md-0" action="" method="get">
+    <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+     `<select name="order_by" id="order_by">
+         <option value="-date_filed">New</option>
+         <option value="-record_date">Transaction Date</option>
+      </select>
+   </input>
+ </form>
+    {% block table_content %}
+    {% endblock table_content %}
+{% endblock list_content %}
+
+{% block custom_script %}
+<script>
+  $(function(){
+    $('#order_by').val("{{request.GET.order_by}}");
+    $('#order_by').change(function(){
+      $('#filters').submit();
+    });
+  });
+</script>
+{% endblock custom_script %}

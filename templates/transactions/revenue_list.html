@@ -1,11 +1,7 @@
-{% extends '_base_paginated_results.html' %}
+{% extends '_record_list.html' %}
 {% load humanize %}
 
-{% block list_content %}
-<form class="form-inline mt-2 mt-md-0" action="" method="get">
-  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-</form>
-
+{% block table_content %}
 <table class="table table-striped">
     <thead>
       <tr>
@@ -33,4 +29,4 @@
       {% endfor %}
     </tbody>
   </table>
-{% endblock list_content %}
+{% endblock table_content %}

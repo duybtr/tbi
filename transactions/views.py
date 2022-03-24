@@ -104,6 +104,7 @@ class StatementListView(ListView):
     model = Statement
     context_object_name = 'statements'
     template = 'transactions/statement_list.html'
+    ordering = ['statement_type', 'account_number', 'period_ending_date']
 
 class StatementDeleteView(DeleteView):
     model = Statement
@@ -317,6 +318,7 @@ class RevenueListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        order_by = self.request.GET.get('order_by')
         queryset = None
         if query is None:
             queryset = Revenue.objects.all()
@@ -324,7 +326,9 @@ class RevenueListView(ListView):
             queryset = Revenue.objects.filter(
                 Q(address__address__address__icontains=query) | Q(note__icontains=query) 
             )
-        return queryset.order_by('-record_date','address__address__address')
+        if order_by is None:
+            order_by = '-date_filed'
+        return queryset.order_by(order_by,'address__address__address')
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
