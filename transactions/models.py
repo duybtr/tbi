@@ -85,7 +85,7 @@ class Rental_Unit(models.Model):
 
 class Raw_Invoice(models.Model):
     directory = 'unfiled_invoices'
-    upload_date = models.DateField(auto_now=True)
+    upload_date = models.DateTimeField(auto_now=True)
     invoice_image = models.FileField()
     tax_year = models.IntegerField()
     date_filed = models.DateTimeField(blank=True, null=True)
