@@ -61,8 +61,11 @@ def delete_file(file, blob_prefix):
     bucket = create_or_retrieve(GCS_ROOT_BUCKET)
     generated_filename = format_for_storage(file.name)
     blob = bucket.blob('{}/{}'.format(blob_prefix, generated_filename))
-    blob.delete()
-
+    if blob.exists():
+        blob.delete()
+    else:
+        # TODO: We are trying to delete a file that doesn't exists. Need to log the request
+        print("{} doesn't exist".format(blob))
 def get_paginator_object(result_set, max_per_page, request):
     paginator = Paginator(result_set, max_per_page)
     page_num = request.GET.get('page')

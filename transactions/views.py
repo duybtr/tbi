@@ -21,6 +21,7 @@ from datetime import datetime
 import os, sys
 from decimal import Decimal
 from django.conf import settings
+from hashlib import md5
 
 # Initialize logging
 # Instantiates a client
@@ -282,30 +283,27 @@ class CreateMatchingExpenseView(CreateView):
         Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=expense_model.pk)
         return super().form_valid(form)
 
-
 class ExpenseListView(ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
     context_object_name = 'expenses'
     paginate_by = 50
-    ordering = ['id']
 
     def get_queryset(self):
+        q = Q()
         query = self.request.GET.get('q')
-        queryset = None
-        if query is None:
-            queryset = Expense.objects.all()
-        else:
-            #queryset = Expense.objects.annotate(full_address=Concat('address__address__address', Value(' '), 'address__suite'))
-            queryset = Expense.objects.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
-            #queryset = queryset.filter(
-            #    Q(full_address__icontains=query) | Q(note__icontains=query) | Q(expense_type__icontains=query)
-            #)
-            q = Q()
+        order_by = self.request.GET.get('order_by')
+        current_year = self.request.GET.get('year')
+        queryset = Expense.objects.all()
+        if not query is None:
+            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
             for word in query.split(" "):
                 q = q & Q(searchable_text__icontains=word)
-            queryset = queryset.filter(q)
-        return queryset.order_by('-record_date','address__address__address')
+        if order_by is None:
+            order_by = '-date_filed'
+        if current_year != 'all':
+            q = q & Q(record_date__year__gte = datetime.now().year)
+        return queryset.filter(q).order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
@@ -317,18 +315,17 @@ class RevenueListView(ListView):
     paginate_by = 50
 
     def get_queryset(self):
+        q = Q()
         query = self.request.GET.get('q')
         order_by = self.request.GET.get('order_by')
-        queryset = None
-        if query is None:
-            queryset = Revenue.objects.all()
-        else:
-            queryset = Revenue.objects.filter(
-                Q(address__address__address__icontains=query) | Q(note__icontains=query) 
-            )
+        current_year = self.request.GET.get('year')
+        if not query is None:
+            q = Q(address__address__address__icontains=query) | Q(note__icontains=query)
+        if current_year != 'all':
+            q = q & Q(record_date__year__gte = datetime.now().year) 
         if order_by is None:
             order_by = '-date_filed'
-        return queryset.order_by(order_by,'address__address__address')
+        return Revenue.objects.filter(q).order_by(order_by,'address__address__address')
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
@@ -496,7 +493,16 @@ class UploadMultipleInvoicesView(FormView):
                 )
                 full_file_path = settings.MEDIA_ROOT + '/' + format_for_storage(f.name)
                 with open(full_file_path, "rb") as current_file:
+                    md5_hash = md5()
+                    while True:
+                        buf = current_file.read(2**20)
+                        if not buf:
+                            break
+                        md5_hash.update(buf)
+                    invoice.file_hash = md5_hash.hexdigest()
+                    current_file.seek(0)
                     store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
+                
                 invoice.save()
                 os.remove(full_file_path)
 
