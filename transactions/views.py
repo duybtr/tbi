@@ -580,6 +580,7 @@ class FileInvoiceView(UpdateView):
             pk = self.kwargs.get('pk')
             expense_model = form.save(commit=False)
             raw_invoice = Raw_Invoice.objects.get(pk=pk)
+            expense_model.raw_invoice = raw_invoice
             expense_model.document_image = raw_invoice.invoice_image
             expense_model.author = request.user
             Raw_Invoice.objects.filter(pk=pk).update(
