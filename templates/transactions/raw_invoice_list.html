@@ -1,5 +1,6 @@
 {% extends '_base.html' %}
 {% load humanize %}
+{% load tz %}
 
 {% block content %}
 <form class="form-inline mt-2 mt-md-0" action="{%url 'expense_list' %}" method="get">
@@ -17,7 +18,9 @@
     <tbody>
       {% for invoice in object_list %}
       <tr>
+        {% timezone "America/Chicago" %}
         <td>{{ invoice.upload_date }}</td>
+        {% endtimezone %}
         <td><a href="{{ invoice.get_full_path_to_gcs }}">{{ invoice.invoice_image.name }}</a></td>
         <td>{{ invoice.note }}</td>
         <td><a href="{% url 'file_invoice' invoice.pk %}">File</a></td>

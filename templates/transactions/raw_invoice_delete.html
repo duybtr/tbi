@@ -1,9 +1,10 @@
 {% extends '_base.html' %}
+{% load tz %}
 
 {% block content %}
     <h1>Delete Invoice</h1>
     <form action="" method='POST'>{% csrf_token%}
-        <p>Are you sure you want to  delete the "{{raw_invoice.invoice_image.name}}" on {{raw_invoice.upload_date}}</p>
+        <p>Are you sure you want to  delete the "{{raw_invoice.invoice_image.name}}" on {% timezone 'America/Chicago' %} {{raw_invoice.upload_date}} {% endtimezone %}</p>
         <input type="submit" value="Confirm">
     </form> 
 {% endblock content %}
