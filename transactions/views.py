@@ -289,25 +289,39 @@ class ExpenseListView(ListView):
     context_object_name = 'expenses'
     paginate_by = 50
 
-    def get_queryset(self):
+    def get_q(self):
         q = Q()
         query = self.request.GET.get('q')
         order_by = self.request.GET.get('order_by')
         current_year = self.request.GET.get('year')
-        queryset = Expense.objects.all()
+        unmatched_invoice = self.request.GET.get('unmatched_invoice')
         if not query is None:
-            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
             for word in query.split(" "):
                 q = q & Q(searchable_text__icontains=word)
         if order_by is None:
             order_by = '-date_filed'
         if current_year != 'all':
             q = q & Q(record_date__year__gte = datetime.now().year)
-        return queryset.filter(q).order_by('-record_date','address__address__address')
+        return q
+    def get_queryset(self):
+        query = self.request.GET.get('q')
+        queryset = Expense.objects.all()
+        if not query is None:
+            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
+        return queryset.filter(self.get_q()).order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
+class UnmatchedExpenseListView(ExpenseListView):
+    def get_q(self):
+        q = super().get_q()
+        all_transactions = Transaction.objects.all()
+        match_ids = [transaction.match_id for transaction in list(all_transactions)]
+        q = q & ~Q(pk__in = match_ids)
+        return q
+
+
 class RevenueListView(ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'
