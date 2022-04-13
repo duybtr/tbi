@@ -1,6 +1,7 @@
-# tbi
+# Setup Guide
 ## Step 1: Clone the project
 Create a folder. For example: mkdir tbi_test
+
 git clone https://github.com/duybtr/tbi.git
 
 ## Step 2. Create a virtual environment and activate it
