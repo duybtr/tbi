@@ -50,4 +50,3 @@ class UploadMultipleInvoicesForm(forms.Form):
     )
     invoices = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True})) 
     
-    
