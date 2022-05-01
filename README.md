@@ -1,16 +1,18 @@
 # Setup Guide
 ## Step 1: Clone the project
-Create a folder. For example: mkdir tbi_test
-
 git clone https://github.com/duybtr/tbi.git
 
 ## Step 2. Create a virtual environment and activate it
-Navigate to the folder. For example, cd tbi_test/tbi 
+Navigate to the folder we just clone and enter the following commands:
 
-virtualenv [dir_name]
+virtualenv env
 
-[dir_name]\Scripts\activate
+env\Scripts\activate
 
 ## Step 3: Install the necessary requirements
 pip install -r requirements.txt
 
+## Step 4: Generate django secret key
+python generate_secret_key.py
+
+## Step 5: Download sqlproxy
