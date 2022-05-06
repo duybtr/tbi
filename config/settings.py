@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'transactions', #new
     'accounts', #new
+    'rest_framework', #new
 
     
 ]
