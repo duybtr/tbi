@@ -26,6 +26,7 @@ urlpatterns = [
 
     # Local apps
     path('', include('transactions.urls')),
+    path('api/', include('api.urls')), 
 
    
 ]
