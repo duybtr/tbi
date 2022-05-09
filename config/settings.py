@@ -74,9 +74,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'django.contrib.humanize',
+    
+    #3rd_party
+    'rest_framework', #new
     'transactions', #new
     'accounts', #new
-    'rest_framework', #new
+    
 
     
 ]
@@ -191,6 +194,11 @@ LOGOUT_REDIRECT_URL = 'home'
 
 MEDIA_ROOT = '/tmp'
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # nnew
+    ]
+}
 
 STATIC_URL = '/static/'
 #STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))] # new
