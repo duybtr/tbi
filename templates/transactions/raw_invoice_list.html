@@ -21,7 +21,7 @@
         {% timezone "America/Chicago" %}
         <td>{{ invoice.upload_date }}</td>
         {% endtimezone %}
-        <td><a href="{{ invoice.get_full_path_to_gcs }}">{{ invoice.invoice_image.name }}</a></td>
+        <td><a href="{{ invoice.get_full_path_to_gcs }}">{{ invoice.invoice_image}}</a></td>
         <td>{{ invoice.note }}</td>
         <td><a href="{% url 'file_invoice' invoice.pk %}">File</a></td>
         {% if invoice.need_review %}

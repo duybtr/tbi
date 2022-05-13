@@ -147,6 +147,14 @@ else:
             'NAME': 'postgres',
             'USER': 'postgres',
             'PASSWORD': 'testpass123',
+        },
+        'dev' : {
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+            'NAME': 'test_db',
+            'USER': 'postgres',
+            'PASSWORD': 'testpass123',
         }
     }
 # [END db_setup]

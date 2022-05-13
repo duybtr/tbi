@@ -86,7 +86,7 @@ class Rental_Unit(models.Model):
 class Raw_Invoice(models.Model):
     directory = 'unfiled_invoices'
     upload_date = models.DateTimeField(auto_now=True)
-    invoice_image = models.FileField()
+    invoice_image = models.TextField(max_length=500)
     file_hash = models.TextField(max_length=32, unique=True)
     tax_year = models.IntegerField()
     date_filed = models.DateTimeField(blank=True, null=True)
@@ -103,10 +103,10 @@ class Raw_Invoice(models.Model):
         return get_full_path_to_gcs(self.get_relative_path_to_gcs())
 
     def get_relative_path_to_gcs(self):
-        return '{}/{}'.format(self.directory, self.invoice_image.name)
+        return '{}/{}'.format(self.directory, self.invoice_image)
     
     def __str__(self):
-        return self.invoice_image.name
+        return self.invoice_image
 
 
 class Record(models.Model):

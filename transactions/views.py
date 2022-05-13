@@ -22,6 +22,8 @@ import os, sys
 from decimal import Decimal
 from django.conf import settings
 from hashlib import md5
+from django.core.files.storage import default_storage
+import pdb
 
 # Initialize logging
 # Instantiates a client
@@ -499,13 +501,9 @@ class UploadMultipleInvoicesView(FormView):
         if form.is_valid():
             tax_year = form.cleaned_data['tax_year']
             for f in files:
-                invoice = Raw_Invoice.objects.create(
-                    upload_date = datetime.now(),
-                    invoice_image = f,
-                    author = request.user,
-                    tax_year = int(tax_year)
-                )
-                full_file_path = settings.MEDIA_ROOT + '/' + format_for_storage(f.name)
+                tmp_file_name = format_for_storage(f.name)
+                default_storage.save(tmp_file_name, f)
+                full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
                 with open(full_file_path, "rb") as current_file:
                     md5_hash = md5()
                     while True:
@@ -513,10 +511,15 @@ class UploadMultipleInvoicesView(FormView):
                         if not buf:
                             break
                         md5_hash.update(buf)
-                    invoice.file_hash = md5_hash.hexdigest()
+                    invoice = Raw_Invoice.objects.create(
+                        upload_date = datetime.now(),
+                        invoice_image = tmp_file_name,
+                        author = request.user,
+                        tax_year = int(tax_year),
+                        file_hash = md5_hash.hexdigest()
+                    )
                     current_file.seek(0)
                     store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
-                
                 invoice.save()
                 os.remove(full_file_path)
 
@@ -561,7 +564,7 @@ class RawInvoiceDeleteView(DeleteView):
 
     def delete(self, *args, **kwargs):
         raw_invoice = Raw_Invoice.objects.get(pk=self.kwargs.get('pk'))
-        if raw_invoice.invoice_image.name:
+        if raw_invoice.invoice_image:
             delete_file(raw_invoice.invoice_image, Raw_Invoice.directory)
         return super(RawInvoiceDeleteView, self).delete(*args, **kwargs)
 
