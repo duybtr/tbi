@@ -22,7 +22,7 @@
         <td>{{ revenue.get_revenue_type_display }}</td>
         <td>${{ revenue.amount|intcomma }}</td>
         <!-- <td><a href="{{ revenue.get_full_path_to_gcs }}">{{ revenue.document_image.name }}</a></td> -->
-        <td>{{ expense.note }}</td>
+        <td>{{ revenue.note }}</td>
         <td><a href="{% url 'revenue_edit' revenue.pk %}">Edit</a></td>
         <td><a href="{% url 'revenue_delete' revenue.pk %}">Delete</a></td>
       </tr>

@@ -340,7 +340,7 @@ class RevenueListView(ListView):
         if current_year != 'all':
             q = q & Q(record_date__year__gte = datetime.now().year) 
         if order_by is None:
-            order_by = '-date_filed'
+            order_by = '-record_date'
         return Revenue.objects.filter(q).order_by(order_by,'address__address__address')
     
     def get(self, request, *args, **kwargs):
