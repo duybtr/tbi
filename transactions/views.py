@@ -333,13 +333,13 @@ class RevenueListView(ListView):
     def get_queryset(self):
         q = Q()
         query = self.request.GET.get('q')
-        query = query.strip()
         order_by = self.request.GET.get('order_by')
         current_year = self.request.GET.get('year')
         queryset = Revenue.objects.all()
         queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
         if not query is None:
             try:
+                query = query.strip()
                 target_amount = float(query)
                 lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
                 q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
