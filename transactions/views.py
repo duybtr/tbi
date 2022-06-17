@@ -350,8 +350,13 @@ class RevenueListView(ListView):
             q = q & Q(record_date__year__gte = datetime.now().year) 
         if order_by is None:
             order_by = '-record_date'
-      
-        return queryset.filter(q).order_by(order_by,'address_and_suite')
+
+        order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
+                         'new': ['-date_filed', 'address_and_suite'],
+                         'address' : ['address_and_suite', '-date_filed']
+                        }
+        
+        return queryset.filter(q).order_by(*order_by_dict[order_by])
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
