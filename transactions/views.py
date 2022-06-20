@@ -299,6 +299,12 @@ class ExpenseListView(ListView):
         unmatched_invoice = self.request.GET.get('unmatched_invoice')
         if not query is None:
             for word in query.split(" "):
+                if word.isdigit():
+                    word = word.strip()
+                    target_amount = float(word)
+                    lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
+                    q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
+                    break
                 q = q & Q(searchable_text__icontains=word)
         if order_by is None:
             order_by = '-date_filed'

@@ -1,6 +1,16 @@
 {% extends '_record_list.html' %}
 {% load humanize %}
 
+{% block extra_form %}
+&nbsp;&nbsp;
+<label for="order_by"> Sort by: </label>
+   <select name="order_by" id="order_by" value="">
+    <option value="-date_filed">New</option>
+    <option value="-record_date">Transaction Date</option>
+    <option value="address">Address</option>
+</select>
+{% endblock extra_form %}
+
 {% block table_content %}
 <table class="table table-striped">
     <thead>
