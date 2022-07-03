@@ -26,7 +26,7 @@ class TransactionUpdateForm(forms.ModelForm):
 class RawInvoiceUpdateForm(forms.ModelForm):
     class Meta:
         model = Raw_Invoice
-        exclude = ['upload_date','invoice_image','date_filed','author']
+        exclude = ['upload_date', 'file_hash', 'invoice_image','date_filed','author']
 
 class CreateExpenseForm(forms.ModelForm):
     #document_image = forms.FileField(widget=CustomClearableFileInput)
