@@ -28,6 +28,7 @@ from .views import (
     MatchingExpenseListView,
     MatchingRevenueListView,
     UploadMultipleInvoicesView,
+    GetTaxReportView,
     RawInvoiceListView,
     RawInvoiceEditView,
     RawInvoiceDeleteView,
@@ -60,6 +61,7 @@ urlpatterns = [
     path('<int:pk>/list_matching_revenues/', MatchingRevenueListView.as_view(), name='matching_revenue_list'),
     path('<int:pk>/list_matching_expenses/', MatchingExpenseListView.as_view(), name='matching_expense_list'),
     path('upload_multiple_invoices/', UploadMultipleInvoicesView.as_view(), name='upload_multiple_invoices'),
+    path('get_tax_report/', GetTaxReportView.as_view(), name='get_tax_report'),
     path('list_statements/', StatementListView.as_view(), name='statement_list'),
     path('<int:pk>/delete_statement/', StatementDeleteView.as_view(), name='statement_delete'),
 

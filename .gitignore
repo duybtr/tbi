@@ -3,3 +3,5 @@ config/.env
 #*/migrations
 static
 *.log
+/cloud_keys
+

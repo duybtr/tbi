@@ -39,6 +39,17 @@ class CreateRevenueForm(forms.ModelForm):
         model = Revenue
         exclude = ['author', 'date_uploaded']
 
+class SelectTaxYearForm(forms.Form):
+    current_year = datetime.now().year
+    start_year = 2021
+    end_year = current_year
+    years = [(str(i), str(i)) for i in range(start_year, current_year+1)]
+    tax_year = forms.ChoiceField(
+        required=False,
+        widget=forms.Select,
+        choices=years,
+        initial=str(current_year),
+    )
 class UploadMultipleInvoicesForm(forms.Form):
     current_year = datetime.now().year
     years = [(str(i), str(i)) for i in range(current_year-2, current_year+2)]

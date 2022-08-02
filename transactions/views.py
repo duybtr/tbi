@@ -5,7 +5,7 @@ import csv, io
 from django.shortcuts import render
 from django.contrib import messages
 from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -23,7 +23,8 @@ from decimal import Decimal
 from django.conf import settings
 from hashlib import md5
 from django.core.files.storage import default_storage
-import pdb
+import gspread
+
 
 # Initialize logging
 # Instantiates a client
@@ -358,7 +359,7 @@ class RevenueListView(ListView):
             order_by = '-record_date'
 
         order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
-                         'new': ['-date_filed', 'address_and_suite'],
+                         '-date_filed': ['-date_filed', 'address_and_suite'],
                          'address' : ['address_and_suite', '-date_filed']
                         }
         
@@ -629,4 +630,19 @@ class FileInvoiceView(UpdateView):
                         expense_model.get_relative_path_to_gcs())
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
-    
+
+class GetTaxReportView(FormView):
+    form_class = SelectTaxYearForm
+    template_name = "transactions/get_tax_report.html"
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            #import pdb; pdb.set_trace()
+            tax_year = form.cleaned_data['tax_year']
+            gc = gspread.service_account(filename='cloud_keys/tbi-finance-a3f1a4fd0be6.json')
+            report_name = 'Tran Ba Investment Group Tax Report ' + tax_year
+            sh = gc.open(report_name)
+            redirect_url = "https://docs.google.com/spreadsheets/d/{}".format(sh.id)
+            return HttpResponseRedirect(redirect_url)
+        return render(request, self.template_name, {'form': form})
+        
