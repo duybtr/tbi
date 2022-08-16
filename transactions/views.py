@@ -1,6 +1,7 @@
 # transactions/views.py
 
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
@@ -36,10 +37,10 @@ client = google.cloud.logging.Client()
 # at INFO level and higher
 client.setup_logging()
 
-class HomePageView(TemplateView):
+class HomePageView(LoginRequiredMixin, TemplateView):
     template_name = 'home.html'
 
-class AboutPageView(TemplateView):
+class AboutPageView(LoginRequiredMixin, TemplateView):
     template_name = 'about.html'
 
 def convert_date(dt_string):
@@ -49,7 +50,7 @@ def convert_decimal(amount):
         return 0
     return amount
 
-class StatementCreateView(CreateView):
+class StatementCreateView(LoginRequiredMixin, CreateView):
     model = Statement
     form_class = StatementUploadForm
     template_name = 'transactions/statement_upload.html'
@@ -104,13 +105,13 @@ def populate_transaction_table(csv_file, statement_model):
                     transaction_amount = transaction_amount_val
                 )
 
-class StatementListView(ListView):
+class StatementListView(LoginRequiredMixin, ListView):
     model = Statement
     context_object_name = 'statements'
     template = 'transactions/statement_list.html'
     ordering = ['statement_type', 'account_number', 'period_ending_date']
 
-class StatementDeleteView(DeleteView):
+class StatementDeleteView(LoginRequiredMixin, DeleteView):
     model = Statement
     # not sure why this doesn't work
     # template = 'transactions/statement_delete.html' 
@@ -122,7 +123,7 @@ class StatementDeleteView(DeleteView):
         if statement.uploaded_file.name:
             delete_file(statement.uploaded_file, statement.get_statement_folder())
         return super(StatementDeleteView, self).delete(*args, **kwargs)
-class TransactionListView(ListView):
+class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
     context_object_name = 'transactions'
     template_name = 'transactions/transaction_list.html'
@@ -166,7 +167,7 @@ class UnmatchedTransactionListView(TransactionListView):
         q = q & Q(match_id=0) & Q(is_ignored=False)
         return q
 
-class TransactionUpdateView(UpdateView):
+class TransactionUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction 
     form_class  = TransactionUpdateForm
     template_name = 'transactions/transaction_edit.html'
@@ -192,12 +193,12 @@ class TransactionUpdateView(UpdateView):
             transaction.save()
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
-class TransactionDeleteView(DeleteView):
+class TransactionDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
     template_name = 'transactions/transaction_delete.html'
     success_url = reverse_lazy('transaction_list')
 
-class CreateExpenseView(CreateView):
+class CreateExpenseView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_record.html'
@@ -216,7 +217,7 @@ class CreateExpenseView(CreateView):
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
-class CreateRevenueView(CreateView):
+class CreateRevenueView(LoginRequiredMixin, CreateView):
     model = Revenue
     form_class = CreateRevenueForm
     template_name = 'transactions/create_record.html'
@@ -236,7 +237,7 @@ class CreateRevenueView(CreateView):
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
-class CreateMatchingRevenueView(CreateView):
+class CreateMatchingRevenueView(LoginRequiredMixin, CreateView):
     model = Revenue
     form_class = CreateRevenueForm
     template_name = 'transactions/create_record.html'
@@ -261,7 +262,7 @@ class CreateMatchingRevenueView(CreateView):
         Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=revenue_model.pk)
         return super().form_valid(form)
 
-class CreateMatchingExpenseView(CreateView):
+class CreateMatchingExpenseView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_record.html'
@@ -286,7 +287,7 @@ class CreateMatchingExpenseView(CreateView):
         Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=expense_model.pk)
         return super().form_valid(form)
 
-class ExpenseListView(ListView):
+class ExpenseListView(LoginRequiredMixin, ListView):
     model = Expense
     template_name = 'transactions/expense_list.html'
     context_object_name = 'expenses'
@@ -322,16 +323,8 @@ class ExpenseListView(ListView):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
-class UnmatchedExpenseListView(ExpenseListView):
-    def get_q(self):
-        q = super().get_q()
-        all_transactions = Transaction.objects.all()
-        match_ids = [transaction.match_id for transaction in list(all_transactions)]
-        q = q & ~Q(pk__in = match_ids)
-        return q
-
-
-class RevenueListView(ListView):
+ 
+class RevenueListView(LoginRequiredMixin, ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'
     context_object_name = 'revenues'
@@ -370,7 +363,7 @@ class RevenueListView(ListView):
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
 
-class ExpenseUpdateView(UpdateView):
+class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
@@ -397,7 +390,7 @@ class ExpenseUpdateView(UpdateView):
                 delete_file(previous_expense.document_image, previous_expense.get_record_folder())
         return super().form_valid(form)
 
-class RevenueUpdateView(UpdateView):
+class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     model = Revenue
     form_class = CreateRevenueForm
     template_name = 'transactions/revenue_edit.html'
@@ -422,7 +415,7 @@ class RevenueUpdateView(UpdateView):
                 delete_file(previous_revenue.document_image, previous_revenue.get_record_folder())
         return super().form_valid(form)
 
-class ExpenseDeleteView(DeleteView):
+class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     model = Expense
     template_name = 'transactions/expense_delete.html'
     success_url = reverse_lazy('expense_list')
@@ -434,7 +427,7 @@ class ExpenseDeleteView(DeleteView):
         Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
         return super(ExpenseDeleteView, self).delete(*args, **kwargs)
 
-class RevenueDeleteView(DeleteView):
+class RevenueDeleteView(LoginRequiredMixin, DeleteView):
     model = Revenue
     template_name = 'transactions/revenue_delete.html'
     success_url = reverse_lazy('revenue_list')
@@ -446,7 +439,7 @@ class RevenueDeleteView(DeleteView):
         Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
         return super(RevenueDeleteView, self).delete(*args, **kwargs)
 
-class MatchingExpenseListView(ListView):
+class MatchingExpenseListView(LoginRequiredMixin, ListView):
     model = Expense
     template_name = 'transactions/matching_expense_list.html'
 
@@ -469,7 +462,7 @@ class MatchingExpenseListView(ListView):
         )
         return context
 
-class MatchingRevenueListView(ListView):
+class MatchingRevenueListView(LoginRequiredMixin, ListView):
     model = Revenue
     template_name = 'transactions/matching_revenue_list.html'
 
@@ -510,7 +503,7 @@ def remove_match(request, transaction_pk):
     Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
     return HttpResponseRedirect(reverse('transaction_list'))
 
-class UploadMultipleInvoicesView(FormView):
+class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
     form_class = UploadMultipleInvoicesForm
     template_name = 'transactions/upload_multiple_invoices.html'
     success_url = reverse_lazy('upload_multiple_invoices')
@@ -549,7 +542,7 @@ class UploadMultipleInvoicesView(FormView):
         else:
             return render(request, self.template_name, {'form': form})
 
-class RawInvoiceListView(ListView):
+class RawInvoiceListView(LoginRequiredMixin, ListView):
     model = Raw_Invoice
     template_name = 'transactions/raw_invoice_list.html'
     success_url = reverse_lazy('raw_invoices')
@@ -558,7 +551,7 @@ class RawInvoiceListView(ListView):
     def get_queryset(self):
         return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=False))
 
-class ReviewInvoiceListView(ListView):
+class ReviewInvoiceListView(LoginRequiredMixin, ListView):
     model = Raw_Invoice
     template_name = 'transactions/raw_invoice_list.html'
     success_url = reverse_lazy('raw_invoices')
@@ -567,19 +560,19 @@ class ReviewInvoiceListView(ListView):
     def get_queryset(self):
         return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=True))
 
-class ReviewInvoiceEditView(UpdateView):
+class ReviewInvoiceEditView(LoginRequiredMixin, UpdateView):
     model = Raw_Invoice
     form_class = RawInvoiceUpdateForm
     template_name = 'transactions/raw_invoice_edit.html'
     success_url = reverse_lazy('review_invoices')
 
-class RawInvoiceEditView(UpdateView):
+class RawInvoiceEditView(LoginRequiredMixin, UpdateView):
     model = Raw_Invoice
     form_class = RawInvoiceUpdateForm
     template_name = 'transactions/raw_invoice_edit.html'
     success_url = reverse_lazy('raw_invoices')
 
-class RawInvoiceDeleteView(DeleteView):
+class RawInvoiceDeleteView(LoginRequiredMixin, DeleteView):
     model = Raw_Invoice
     template_name = 'transactions/raw_invoice_delete.html'
     success_url = reverse_lazy('raw_invoices')
@@ -590,7 +583,7 @@ class RawInvoiceDeleteView(DeleteView):
             delete_file(raw_invoice.invoice_image, Raw_Invoice.directory)
         return super(RawInvoiceDeleteView, self).delete(*args, **kwargs)
 
-class FileInvoiceView(UpdateView):
+class FileInvoiceView(LoginRequiredMixin, UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     success_url = reverse_lazy('raw_invoices')
@@ -631,7 +624,7 @@ class FileInvoiceView(UpdateView):
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
-class GetTaxReportView(FormView):
+class GetTaxReportView(LoginRequiredMixin, FormView):
     form_class = SelectTaxYearForm
     template_name = "transactions/get_tax_report.html"
     def post(self, request, *args, **kwargs):
