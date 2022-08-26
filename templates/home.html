@@ -5,14 +5,7 @@
 {% block title %}Tran Ba Investment Group{% endblock title %}
 
 {% block content %}
-  <h1>Tran Ba Investment Group LLC</h1>
-  <!-- <img class="logo" src="{% static 'images/logo.jpg' %}"> -->
-  {% if user.is_authenticated %}
-    Hi {{user.username}}!
-    <p><a href="{% url 'logout' %}">Log Out</a></p>
-  {% else %}
-    <p>You are not logged in</p>
-    <a href="{% url 'login' %}">Log In</a>
-  {% endif %}
+
+  <iframe width="800" height="600" src="https://datastudio.google.com/embed/reporting/440be31a-46ea-41e3-8041-09aa8f9916da/page/Myr0C" frameborder="0" style="border:0" allowfullscreen></iframe>
 
 {% endblock content %}
