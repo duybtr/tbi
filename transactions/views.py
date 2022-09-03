@@ -121,7 +121,7 @@ class StatementDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, *args, **kwargs):
         statement = Statement.objects.get(pk=self.kwargs.get('pk'))
         if statement.uploaded_file.name:
-            delete_file(statement.uploaded_file, statement.get_statement_folder())
+            delete_file(statement.uploaded_file.name, statement.get_statement_folder())
         return super(StatementDeleteView, self).delete(*args, **kwargs)
 class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
@@ -412,7 +412,7 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
             else:
                 logging.info('Document {} was cleared'.format(previous_revenue.document_image.name))
             if previous_revenue.document_image.name:       
-                delete_file(previous_revenue.document_image, previous_revenue.get_record_folder())
+                delete_file(previous_revenue.document_image.name, previous_revenue.get_record_folder())
         return super().form_valid(form)
 
 class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
@@ -423,7 +423,7 @@ class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, *args, **kwargs):
         expense = Expense.objects.get(pk=self.kwargs.get('pk'))
         if expense.document_image.name:
-            delete_file(expense.document_image, expense.get_record_folder())
+            delete_file(expense.document_image.name, expense.get_record_folder())
         Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
         return super(ExpenseDeleteView, self).delete(*args, **kwargs)
 
@@ -435,7 +435,7 @@ class RevenueDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, *args, **kwargs):
         revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
         if revenue.document_image.name:
-            delete_file(revenue.document_image, revenue.get_record_folder())
+            delete_file(revenue.document_image.name, revenue.get_record_folder())
         Transaction.objects.filter(match_id=self.kwargs.get('pk')).update(match_id = 0)
         return super(RevenueDeleteView, self).delete(*args, **kwargs)
 
@@ -580,7 +580,7 @@ class RawInvoiceDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, *args, **kwargs):
         raw_invoice = Raw_Invoice.objects.get(pk=self.kwargs.get('pk'))
         if raw_invoice.invoice_image:
-            delete_file(raw_invoice.invoice_image, Raw_Invoice.directory)
+            delete_file(raw_invoice.invoice_image.name, Raw_Invoice.directory)
         return super(RawInvoiceDeleteView, self).delete(*args, **kwargs)
 
 class FileInvoiceView(LoginRequiredMixin, UpdateView):
