@@ -516,6 +516,7 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
         if form.is_valid():
             tax_year = form.cleaned_data['tax_year']
             for f in files:
+                logging.info("Attempting to store file {}".format(f.name))
                 tmp_file_name = format_for_storage(f.name)
                 default_storage.save(tmp_file_name, f)
                 full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
@@ -526,6 +527,7 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
                         if not buf:
                             break
                         md5_hash.update(buf)
+                    logging.info("Calculated file hash is {}".format(md5_hash.hexdigest()))
                     invoice = Raw_Invoice.objects.create(
                         upload_date = datetime.now(),
                         invoice_image = tmp_file_name,
