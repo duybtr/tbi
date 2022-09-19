@@ -1,14 +1,8 @@
 from os import path
 from django import forms
-from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Rental_Unit
 from django.forms.widgets import ClearableFileInput
 from datetime import datetime
-
-class CustomClearableFileInput(ClearableFileInput):
-    def get_context(self, name, value, attrs):
-        #value.name = path.basename(value.name)
-        context = super().get_context(name, value, attrs)       
-        return context
 
 class StatementUploadForm(forms.ModelForm):
     class Meta:
@@ -29,12 +23,13 @@ class RawInvoiceUpdateForm(forms.ModelForm):
         exclude = ['upload_date', 'file_hash', 'invoice_image','date_filed','author']
 
 class CreateExpenseForm(forms.ModelForm):
-    #document_image = forms.FileField(widget=CustomClearableFileInput)
+    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
     class Meta:
         model = Expense
         exclude = ['author', 'date_uploaded','date_filed','raw_invoice']
         
 class CreateRevenueForm(forms.ModelForm):
+    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
     class Meta:
         model = Revenue
         exclude = ['author', 'date_uploaded']
