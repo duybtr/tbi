@@ -13,6 +13,7 @@ from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormVi
 from django.views.generic import ListView
 from django.db.models import Q, Value, TextField
 from django.db.models.functions import Concat
+from django.db import IntegrityError
 from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file, get_paginator_object
 from google.cloud import storage
 from django.core.paginator import Paginator
@@ -507,12 +508,28 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
     form_class = UploadMultipleInvoicesForm
     template_name = 'transactions/upload_multiple_invoices.html'
     success_url = reverse_lazy('upload_multiple_invoices')
+    
+    def get(self, request, *args, **kwargs):
+        context = {}
+        successful_uploads = request.session.get('successful_uploads', [])
+        failed_uploads = request.session.get('failed_uploads', [])
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        import pdb ; pdb.set_trace()
+        context['successful_uploads'] = successful_uploads
+        context['failed_uploads'] = failed_uploads  
+        context['form'] = form
+        request.session['successful_uploads'] = []
+        request.session['failed_uploads'] = []
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         directory = 'unfiled_invoices'
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         files = request.FILES.getlist('invoices')
+        successful_uploads = []
+        failed_uploads = []
         if form.is_valid():
             tax_year = form.cleaned_data['tax_year']
             for f in files:
@@ -528,18 +545,26 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
                             break
                         md5_hash.update(buf)
                     logging.info("Calculated file hash is {}".format(md5_hash.hexdigest()))
-                    invoice = Raw_Invoice.objects.create(
-                        upload_date = datetime.now(),
-                        invoice_image = tmp_file_name,
-                        author = request.user,
-                        tax_year = int(tax_year),
-                        file_hash = md5_hash.hexdigest()
-                    )
-                    current_file.seek(0)
-                    store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
-                invoice.save()
-                os.remove(full_file_path)
-
+                    try:
+                        invoice = Raw_Invoice.objects.create(
+                            upload_date = datetime.now(),
+                            invoice_image = tmp_file_name,
+                            author = request.user,
+                            tax_year = int(tax_year),
+                            file_hash = md5_hash.hexdigest()
+                        )
+                        successful_uploads.append(f.name)    
+                        current_file.seek(0)
+                        store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
+                        invoice.save()
+                        os.remove(full_file_path)
+                    except IntegrityError as e:
+                        if "duplicate key" in str(e):
+                            logging.info("File {} has already been uploaded.".format(f.name))
+                            failed_uploads.append(f.name)
+                      
+            request.session['successful_uploads'] = successful_uploads
+            request.session['failed_uploads'] = failed_uploads
             return HttpResponseRedirect(self.success_url)
         else:
             return render(request, self.template_name, {'form': form})

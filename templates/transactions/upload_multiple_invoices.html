@@ -7,4 +7,20 @@
         <button class="btn btn-info ml-2" type="submit" id="preventDouble">Submit</button>
     </form>
 
+   
+    
+    {% if failed_uploads|length > 0 %}
+    <h2> The following files failed to upload:</h2>
+    {% for ffile in failed_uploads %}
+    <p style="color:red">{{ ffile }}</p>
+    {% endfor %}
+    {% endif %} 
+
+    {% if successful_uploads|length > 0 %}
+    <h2> The following files were successful uploaded:</h2>
+    {% for sfile in successful_uploads %}
+    <p style="color:green">{{ sfile }}</p>
+    {% endfor %}
+    {% endif %} 
+    
 {% endblock content %}
