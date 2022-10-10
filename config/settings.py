@@ -26,8 +26,11 @@ environ.Env.read_env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
-env_file = os.path.join(BASE_DIR, "config")
-env_file = os.path.join(env_file, ".env")
+env_file = os.path.join(BASE_DIR, "config", ".env")
+
+
+
+
 
 if os.path.isfile(env_file):
     # Use a local secret file, if provided

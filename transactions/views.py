@@ -515,7 +515,7 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
         failed_uploads = request.session.get('failed_uploads', [])
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        import pdb ; pdb.set_trace()
+        #import pdb ; pdb.set_trace()
         context['successful_uploads'] = successful_uploads
         context['failed_uploads'] = failed_uploads  
         context['form'] = form
