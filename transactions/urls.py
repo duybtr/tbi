@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from .views import (
     HomePageView, 
     AboutPageView, 
+    DemoPageView,
     TransactionUpdateView, 
     TransactionDeleteView,
     TransactionListView,
@@ -42,6 +43,7 @@ from .views import (
 urlpatterns = [
     path('', HomePageView.as_view(), name='home'),
     path('about/', AboutPageView.as_view(), name='about'),
+    path('demo/', DemoPageView.as_view(), name='demo'),
     path('upload_csv/', StatementCreateView.as_view(), name='upload_csv'),
     path('upload_invoice/', CreateExpenseView.as_view(), name='upload_invoice'),
     path('upload_check/', CreateRevenueView.as_view(), name='upload_check'),

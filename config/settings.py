@@ -15,9 +15,12 @@ import io
 import os
 import environ
 from google.cloud import secretmanager
+import logging
 import google.cloud.logging
 
 
+client = google.cloud.logging.Client()
+client.setup_logging()
 # Initialise environment variables
 env = environ.Env()
 environ.Env.read_env()
@@ -27,9 +30,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
 env_file = os.path.join(BASE_DIR, "config", ".env")
-
-
-
 
 
 if os.path.isfile(env_file):
@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django_extensions',
     'django.contrib.humanize',
@@ -90,6 +91,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -127,9 +129,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 # [START db_setup]
-if os.getenv('GAE_APPLICATION', None):
-    # Running on production App Engine, so connect to Google Cloud SQL using
-    # the unix socket at /cloudsql/<your-cloudsql-connection string>
+logging.info("**********Setting up database************")
+logging.info("**********Current environment is {}************".format(os.getenv('CLOUDRUN_SERVICE_URL', None)))
+logging.info("**********All environment vars are {}************".format(os.environ))
+logging.info("**********Trying env K_REVISION {}************".format(os.environ.get('K_REVISION', 'None')))
+
+if os.environ.get('K_REVISION', None):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -213,10 +218,11 @@ REST_FRAMEWORK = {
     ]
 }
 
-STATIC_URL = '/static/'
-#STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))] # new
-STATIC_ROOT = 'static'
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))] # new
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_FINDERS = [ # new
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' # new

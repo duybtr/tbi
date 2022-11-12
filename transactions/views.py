@@ -44,6 +44,9 @@ class HomePageView(LoginRequiredMixin, TemplateView):
 class AboutPageView(LoginRequiredMixin, TemplateView):
     template_name = 'about.html'
 
+class DemoPageView(TemplateView):
+    template_name = 'demo.html'
+
 def convert_date(dt_string):
     return datetime.strptime(dt_string, '%m/%d/%Y').strftime('%Y-%m-%d')
 def convert_decimal(amount):

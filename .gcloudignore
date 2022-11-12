@@ -12,6 +12,11 @@
 # below:
 .git
 .gitignore
+env/
+
+Dockerfile
+Pipfile
+Pipfile.lock
 
 # Python pycache:
 __pycache__/
