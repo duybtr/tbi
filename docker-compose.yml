@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  proxy:
+    container_name: "cloud-sql-proxy"
+    image: gcr.io/cloudsql-docker/gce-proxy:1.16
+    volumes:
+      - C:/Users/duytr/AppData/Roaming/gcloud/application_default_credentials.json:/tmp/keys/application_default_credentials.json
+    ports:
+      - 5432:5432
+    command: "/cloud_sql_proxy -instances=tbi-finance:us-central1:tbi-postgres=tcp:0.0.0.0:5432 -credential_file=/tmp/keys/application_default_credentials.json"
+  
+  web:
+    build: .
+    container_name: web
+    volumes:
+      - .:/code
+      - C:/Users/duytr/AppData/Roaming/gcloud/application_default_credentials.json:/tmp/keys/application_default_credentials.json
+    command: >
+      bash -c "gunicorn --bind :8080 --workers 3 config.wsgi"
+   
+    ports:
+      - 8080:8080
+      - 8000:8000
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/application_default_credentials.json
+      - GCLOUD_PROJECT=tbi-finance
+
+
+    
