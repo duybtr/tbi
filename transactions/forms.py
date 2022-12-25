@@ -1,6 +1,6 @@
 from os import path
 from django import forms
-from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Rental_Unit
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Rental_Unit, Document
 from django.forms.widgets import ClearableFileInput
 from datetime import datetime
 
@@ -33,6 +33,12 @@ class CreateRevenueForm(forms.ModelForm):
     class Meta:
         model = Revenue
         exclude = ['author', 'date_uploaded']
+
+class UploadDocumentForm(forms.ModelForm):
+    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
+    class Meta:
+        model = Document
+        exclude = ['author', 'date_uploaded', 'amount']
 
 class SelectTaxYearForm(forms.Form):
     current_year = datetime.now().year

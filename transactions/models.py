@@ -122,7 +122,7 @@ class Record(models.Model):
         on_delete=models.CASCADE,
         related_name='records',
     )
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, default = 0, decimal_places=2)
     document_image = models.FileField(blank=True, null=True)
     note = models.TextField(max_length = 500, blank=True, null=True)
 
@@ -181,3 +181,5 @@ class Revenue(Record):
     )
     revenue_type = models.CharField(max_length=50, choices = REVENUE_TYPES, default='rent')
 
+class Document(Record):
+    record_dir = 'documents'

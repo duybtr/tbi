@@ -5,8 +5,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Document
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -241,6 +241,28 @@ class CreateRevenueView(LoginRequiredMixin, CreateView):
             return HttpResponseRedirect(self.success_url)    
         return render(request, self.template_name, {'form': form})
 
+class UploadDocumentView(LoginRequiredMixin, CreateView):
+    model = Document
+    form_class = UploadDocumentForm
+    template_name = 'transactions/document_upload.html'
+    success_url = reverse_lazy('upload_document')
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        
+        if form.is_valid():
+            import pdb ; pdb.set_trace()
+            document_model = form.save(commit=False)
+            document_model.author = request.user
+            if document_model.document_image.name:
+                store_in_gcs([document_model.document_image], GCS_ROOT_BUCKET, document_model.get_record_folder())
+            form.save()
+            if document_model.document_image.name:
+                os.remove(os.path.join(settings.MEDIA_ROOT, document_model.document_image.name))
+            return HttpResponseRedirect(self.success_url)    
+        return render(request, self.template_name, {'form': form})
+
+
 class CreateMatchingRevenueView(LoginRequiredMixin, CreateView):
     model = Revenue
     form_class = CreateRevenueForm
@@ -327,7 +349,25 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
- 
+
+class DocumentListView(LoginRequiredMixin, ListView):
+    model = Document
+    template_name = 'transactions/document_list.html'
+    context_object_name = 'documents'
+    paginate_by = 50
+
+class DocumentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Document
+    template_name = 'transactions/document_delete.html'
+    success_url = reverse_lazy('upload_document')
+
+    def delete(self, *args, **kwargs):
+        document = Document.objects.get(pk=self.kwargs.get('pk'))
+        if document.document_image.name:
+            delete_file(document.document_image.name, document.get_record_folder())
+        return super(DocumentDeleteView, self).delete(*args, **kwargs)
+
+
 class RevenueListView(LoginRequiredMixin, ListView):
     model = Revenue
     template_name = 'transactions/revenue_list.html'

@@ -86,6 +86,10 @@
         <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5v2zM3 12v-2h2v2H3zm0 1h2v2H4a1 1 0 0 1-1-1v-1zm3 2v-2h3v2H6zm4 0v-2h3v1a1 1 0 0 1-1 1h-2zm3-3h-3v-2h3v2zm-7 0v-2h3v2H6z"/>
       </symbol>
 
+      <symbol id="archive" viewBox="0 0 16 16">
+        <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1V2zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5H2zm13-3H1v2h14V2zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+      </symbol>
+
     </svg>
        
     <main>
@@ -145,6 +149,14 @@
             </a>
           </li>
 
+          <li class="nav-item">
+            {% url 'document_list' as document_list_url %}
+            <a href="{{ document_list_url }}" class="nav-link text-white {% if request.path == document_list_url %} active {% else %} '' {% endif %} " data-toggle="pill">
+              <svg class="bi bi-archive me-2" width="16" height="16"><use xlink:href="#archive"/></svg>
+              Documents
+            </a>
+          </li>
+
         </ul>
         <hr>
         {% if user.is_authenticated %}
@@ -171,8 +183,10 @@
 
       <!-- Main content starts -->
       <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: auto;">
+        <span class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
         {% block top_nav %}
         {% endblock top_nav %}
+        </span>
         
         <div class="list-group list-group-flush border-bottom scrollarea">
           {% block content %}
@@ -186,12 +200,10 @@
     <script>
       // this is to fix the issue with multiple submit
       $(function() {
-        $("#preventDouble").click(function(){
+        $(".preventDouble").click(function(){
           $(this).unbind("click");
           $(this).click(function(){return false;});
         });
-
-
       });
     </script>
     {% block custom_script %}

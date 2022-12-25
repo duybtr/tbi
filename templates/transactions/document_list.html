@@ -1,0 +1,30 @@
+{% extends '_record_list.html' %}
+{% load humanize %}
+
+{% block top_nav %}
+  <a class="p-2 text-dark" href="{% url 'upload_document' %}">New Document</a>
+{% endblock top_nav %}
+{% block table_content %}
+<table class="table table-striped" style="width:auto">
+    <thead>
+      <tr>
+        <th scope="col">Document Date</th>
+        <th scope="col">Address</th>
+        <th scope="col">Document Image</th>
+        <th scope="col">Note </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for document in page_obj.object_list %}
+      <tr>
+        <td>{{ document.record_date }}</td>
+        <td>{{ document.address }}</td>
+        <td><a href="{{ document.get_full_path_to_gcs }}">{{ document.document_image.name }}</a></td>
+        <td>{{ document.note }}</td>
+        <td><a href="{% url 'document_delete' document.pk %}">Delete</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock table_content %}
