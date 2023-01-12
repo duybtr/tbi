@@ -206,7 +206,7 @@ class CreateExpenseView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_record.html'
-    success_url = reverse_lazy('expense_list')
+    success_url = reverse_lazy('upload_invoice')
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
@@ -556,9 +556,15 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
         context = {}
         successful_uploads = request.session.get('successful_uploads', [])
         failed_uploads = request.session.get('failed_uploads', [])
+        import pdb ; pdb.set_trace()
+        selected_tax_year = request.session.get('selected_tax_year', datetime.now().year)
         form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        #import pdb ; pdb.set_trace()
+
+        form = self.form_class(initial={
+            'tax_year' : selected_tax_year
+        })
+
+        
         context['successful_uploads'] = successful_uploads
         context['failed_uploads'] = failed_uploads  
         context['form'] = form
@@ -608,6 +614,7 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
                       
             request.session['successful_uploads'] = successful_uploads
             request.session['failed_uploads'] = failed_uploads
+            request.session['selected_tax_year'] = tax_year
             return HttpResponseRedirect(self.success_url)
         else:
             return render(request, self.template_name, {'form': form})

@@ -81,6 +81,7 @@ class Rental_Unit(models.Model):
         related_name='rental_units'
     )
     suite = models.CharField(max_length=50, blank=True)
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
