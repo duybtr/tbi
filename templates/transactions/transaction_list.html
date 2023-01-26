@@ -29,7 +29,7 @@
         <td>{{ transaction.transaction_date }}</td>
         <td>{{ transaction.statement.account_number }}</td>
         <td>{{ transaction.statement.get_statement_type_display }}</td>
-        <td>{{ transaction.transaction_description }}</td>
+        <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ transaction.transaction_description }}</td>
         <td>${{ transaction.transaction_amount|intcomma}}</td>
         {% if transaction.match_id == 0 %}
           {% if transaction.transaction_amount < 0 %}

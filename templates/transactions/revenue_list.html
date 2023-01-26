@@ -1,6 +1,10 @@
 {% extends '_record_list.html' %}
 {% load humanize %}
 
+{% block top_nav %}
+    <a class="p-2 text-dark" href="{% url 'upload_check' %}">Log a revenue</a>
+{% endblock top_nav %}
+
 {% block extra_form %}
 &nbsp;&nbsp;
 <label for="order_by"> Sort by: </label>
