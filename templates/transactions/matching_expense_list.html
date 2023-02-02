@@ -20,7 +20,7 @@
         <td>{{ target_transaction.transaction_date }}</td>
         <td>{{ target_transaction.statement.account_number }}</td>
         <td>{{ target_transaction.statement.statement_type }}</td>
-        <td>{{ target_transaction.transaction_description }}</td>
+        <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ target_transaction.transaction_description }}</td>
         <td>{{ target_transaction.transaction_amount|intcomma }}</td>
         <td>{{ target_transaction.accounting_classification }}</td>
         <td>{{ target_transaction.is_verified }}</td>
@@ -37,7 +37,7 @@
 {{ object_list|length }} potential match found:
 {% endif %}
 </h1>
-<a class="btn btn-primary" role="button" href="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</a></button>
+<a class="btn btn-primary w-25" role="button" href="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</a>
 <table class="table table-striped">
     <thead>
       <tr>
@@ -58,8 +58,8 @@
           <td>{{ expense.address }}</td>
           <td>{{ expense.get_expense_type_display }}</td>
           <td>${{ expense.amount|intcomma }}</td>
-          <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
-          <td>{{ expense.note }}</td>
+          <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;"><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
+          <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ expense.note }}</td>
           <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
           <td><a href="{% url 'match_expense' target_transaction.pk expense.pk %}">Select</a></td>
       </tr>
