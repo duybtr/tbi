@@ -491,7 +491,6 @@ class MatchingExpenseListView(LoginRequiredMixin, ListView):
         q = Q()
         context = super(MatchingExpenseListView, self).get_context_data(**kwargs)
         #logging.info('kwargs {}'.format(self.kwargs.get('pk')))
-        import pdb ; pdb.set_trace()
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         target_date = target_transaction.transaction_date
         date_range = [(target_date - timedelta(days=90)).strftime('%Y-%m-%d'),
