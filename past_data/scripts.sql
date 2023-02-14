@@ -65,6 +65,7 @@ CREATE TABLE revenue_tmp (address char(50), suite char(20), month int, year int,
 DELETE FROM revenue_tmp WHERE year IN (2022,2021);
 
 UPDATE revenue_tmp SET reimbursement = rent, rent=0 WHERE suite='Reimbursement';
+UPDATE revenue_tmp SET suite = '' WHERE suite='Reimbursement';
 
 DROP TABLE revenue_tmp_unpivoted;
 CREATE TABLE revenue_tmp_unpivoted AS
@@ -72,12 +73,11 @@ SELECT address, suite, month, year,
     unnest(array['rent', 'reimb']) AS revenue_type, 
     unnest(array[rent, reimbursement]) AS amount, note 
     FROM revenue_tmp;
-UPDATE revenue_tmp SET reimbursement = rent, rent=0 WHERE suite='Reimbursement';
-DELETE FROM revenue_tmp_unpivoted WHERE revenue_type = 'reimb' AND amount IS NULL;
+
+DELETE FROM revenue_tmp_unpivoted WHERE amount IS NULL;
 
 INSERT INTO transactions_rental_unit(suite, address_id, is_available) VALUES
 ('D', 7, False);
-
 
 DROP SEQUENCE record_seq;
 DROP SEQUENCE revenue_tmp_seq;
@@ -105,3 +105,17 @@ SELECT r.id, rt.revenue_type
 FROM revenue_tmp_with_ids rt
 INNER JOIN inserted_record_ids r ON rt.id = r.id;
 
+-- Test scripts
+SELECT year,COUNT(1) FROM expense_tmp GROUP BY year;
+SELECT address, year,COUNT(1) FROM expense_tmp WHERE year=2019 GROUP BY address, year ORDER BY address;
+
+SELECT date_part('year', record_date), COUNT(1) FROM transactions_record WHERE id IN (SELECT record_ptr_id FROM transactions_expense) GROUP BY date_part('year', record_date)
+
+SELECT p.address, date_part('year', record_date), COUNT(1) FROM transactions_record r
+INNER JOIN transactions_rental_unit ru ON r.address_id = ru.id
+INNER JOIN transactions_property p ON ru.address_id = p.id 
+WHERE date_part('year', record_date) = 2019 AND r.id IN (SELECT record_ptr_id FROM transactions_expense) GROUP BY p.address, date_part('year', record_date) ORDER BY p.address
+
+
+SELECT COUNT(1) FROM revenue_tmp_unpivotted GROUP BY year;
+SELECT date_part('year', record_date), COUNT(1) FROM transactions_record WHERE id IN (SELECT record_ptr_id FROM transactions_revenue) GROUP BY date_part('year', record_date)

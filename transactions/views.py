@@ -19,7 +19,7 @@ from google.cloud import storage
 from django.core.paginator import Paginator
 import logging
 import google.cloud.logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import os, sys
 from decimal import Decimal
 from django.conf import settings
@@ -488,22 +488,25 @@ class MatchingExpenseListView(LoginRequiredMixin, ListView):
     template_name = 'transactions/matching_expense_list.html'
 
     def get_context_data(self, **kwargs):
+        q = Q()
         context = super(MatchingExpenseListView, self).get_context_data(**kwargs)
         #logging.info('kwargs {}'.format(self.kwargs.get('pk')))
+        import pdb ; pdb.set_trace()
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
-        matched_expenses = Transaction.objects.filter(transaction_amount__lt = 0).values_list('match_id', flat=True)
+        target_date = target_transaction.transaction_date
+        date_range = [(target_date - timedelta(days=90)).strftime('%Y-%m-%d'),
+                      (target_date + timedelta(days=90)).strftime('%Y-%m-%d')]
+        
+        matched_expenses = Transaction.objects.filter(
+            transaction_amount__lt = 0
+        ).values_list('match_id', flat=True)
         target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.1))
         target_transaction_amount_lower = -1*(target_transaction.transaction_amount * Decimal(0.9))
         context['target_transaction'] = target_transaction
-        context['object_list'] = Expense.objects.filter(
-            amount__lte=target_transaction_amount_upper
-        ).filter(
-            amount__gte=target_transaction_amount_lower
-        ).exclude(
-            id__in=matched_expenses
-        ).order_by(
-            '-amount'
-        )
+
+        q = q & Q(record_date__range = date_range)
+        q = q & Q(amount__lte = target_transaction_amount_upper) & Q(amount__gte = target_transaction_amount_lower)
+        context['object_list'] = Expense.objects.filter(q).exclude(id__in=matched_expenses)
         return context
 
 class MatchingRevenueListView(LoginRequiredMixin, ListView):
