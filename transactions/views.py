@@ -47,6 +47,7 @@ class AboutPageView(LoginRequiredMixin, TemplateView):
 class DemoPageView(TemplateView):
     template_name = 'demo.html'
 
+
 def convert_date(dt_string):
     return datetime.strptime(dt_string, '%m/%d/%Y').strftime('%Y-%m-%d')
 def convert_decimal(amount):
@@ -175,7 +176,7 @@ class TransactionUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction 
     form_class  = TransactionUpdateForm
     template_name = 'transactions/transaction_edit.html'
-    success_url = reverse_lazy('transaction_list')
+    #success_url = reverse_lazy('transaction_list')
 
     def get(self, request, *args, **kwargs):
         transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
@@ -188,14 +189,16 @@ class TransactionUpdateView(LoginRequiredMixin, UpdateView):
         })
         return render(request, self.template_name, {'form': form, 'transaction': transaction})
     def post(self, request, *args, **kwargs):
+        
         form = self.form_class(request.POST)
         transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
+        next_string = request.POST.get('next', '/')
         if form.is_valid():
             updated_transaction = form.save(commit=False)
             transaction.is_ignored = updated_transaction.is_ignored
             transaction.transaction_description = updated_transaction.transaction_description
             transaction.save()
-            return HttpResponseRedirect(self.success_url)    
+            return HttpResponseRedirect(next_string)  
         return render(request, self.template_name, {'form': form})
 class TransactionDeleteView(LoginRequiredMixin, DeleteView):
     model = Transaction
@@ -411,10 +414,15 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
-    success_url = reverse_lazy('expense_list')
-    
+    #success_url = reverse_lazy('expense_list')
+    def post(self, request, *args, **kwargs):
+        import pdb; pdb.set_trace()
+        form = self.form_class(request.POST)
+        next_string = request.POST.get('next', '/')
+        if form.is_valid():
+            return HttpResponseRedirect(next_string)  
+        return render(request, self.template_name, {'form': form})
     def form_valid(self, form):
-        
         # grab previous expense from the database
         # Expense.objects.get(pk=pk)
         previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
@@ -439,6 +447,15 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     form_class = CreateRevenueForm
     template_name = 'transactions/revenue_edit.html'
     success_url = reverse_lazy('revenue_list')
+    
+    def post(self, request, *args, **kwargs):
+        import pdb; pdb.set_trace()
+        form = self.form_class(request.POST)
+        next_string = request.POST.get('next', '/')
+        if form.is_valid():
+            return HttpResponseRedirect(next_string)  
+        return render(request, self.template_name, {'form': form})
+
     def form_valid(self, form):
         # grab previous revenue from the database
         # Revenue.objects.get(pk=pk)
@@ -487,9 +504,9 @@ class MatchingExpenseListView(LoginRequiredMixin, ListView):
     model = Expense
     template_name = 'transactions/matching_expense_list.html'
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
         q = Q()
-        context = super(MatchingExpenseListView, self).get_context_data(**kwargs)
+        context = {}
         #logging.info('kwargs {}'.format(self.kwargs.get('pk')))
         target_transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         target_date = target_transaction.transaction_date
@@ -506,7 +523,9 @@ class MatchingExpenseListView(LoginRequiredMixin, ListView):
         q = q & Q(record_date__range = date_range)
         q = q & Q(amount__lte = target_transaction_amount_upper) & Q(amount__gte = target_transaction_amount_lower)
         context['object_list'] = Expense.objects.filter(q).exclude(id__in=matched_expenses)
-        return context
+        return render(request, self.template_name, context)
+    
+
 
 class MatchingRevenueListView(LoginRequiredMixin, ListView):
     model = Revenue

@@ -35,8 +35,9 @@
             <label for="{{ form.is_ignored.id_for_label }}">Can Ignore?</label>
             {{ form.is_ignored }}
         </div>
-        
-        
+
+        <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER }}">
+                
         <button class="btn btn-info ml-2" type="submit">Update</button>
     </form>
    
