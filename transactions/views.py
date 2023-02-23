@@ -254,7 +254,6 @@ class UploadDocumentView(LoginRequiredMixin, CreateView):
         form = self.form_class(request.POST, request.FILES)
         
         if form.is_valid():
-            import pdb ; pdb.set_trace()
             document_model = form.save(commit=False)
             document_model.author = request.user
             if document_model.document_image.name:
@@ -416,7 +415,6 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'transactions/expense_edit.html'
     #success_url = reverse_lazy('expense_list')
     def post(self, request, *args, **kwargs):
-        import pdb; pdb.set_trace()
         form = self.form_class(request.POST)
         next_string = request.POST.get('next', '/')
         if form.is_valid():
@@ -449,7 +447,6 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('revenue_list')
     
     def post(self, request, *args, **kwargs):
-        import pdb; pdb.set_trace()
         form = self.form_class(request.POST)
         next_string = request.POST.get('next', '/')
         if form.is_valid():
