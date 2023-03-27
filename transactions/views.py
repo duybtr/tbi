@@ -393,6 +393,10 @@ class RevenueListView(LoginRequiredMixin, ListView):
         current_year = self.request.GET.get('year')
         queryset = Revenue.objects.all()
         queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
+        addresses = Rental_Unit.objects.all()
+        address = self.request.GET.get('address')
+        rental_units = list(addresses.values('id', 'address__address', 'suite'))
+        ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
         if not query is None:
             try:
                 query = query.strip()
@@ -406,7 +410,8 @@ class RevenueListView(LoginRequiredMixin, ListView):
             q = q & Q(record_date__year__gte = datetime.now().year) 
         if order_by is None:
             order_by = '-record_date'
-
+        if address and address != 'all':
+            q = q & Q(address = ru_dicts[address])
         order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
                          '-date_filed': ['-date_filed', 'address_and_suite'],
                          'address' : ['address_and_suite', '-date_filed']
@@ -415,10 +420,13 @@ class RevenueListView(LoginRequiredMixin, ListView):
         return queryset.filter(q).order_by(*order_by_dict[order_by])
     
     def get(self, request, *args, **kwargs):
+        context = {}
         results = self.get_queryset()
-
+        addresses = Rental_Unit.objects.all()
         page_obj = get_paginator_object(results, 50, request)
-        return render(request, self.template_name, {'page_obj': page_obj})
+        context['addresses'] = addresses
+        context['page_obj'] = page_obj
+        return render(request, self.template_name, context)
 
 class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     model = Expense
