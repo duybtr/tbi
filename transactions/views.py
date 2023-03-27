@@ -5,8 +5,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Document
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
+from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -189,7 +189,6 @@ class TransactionUpdateView(LoginRequiredMixin, UpdateView):
         })
         return render(request, self.template_name, {'form': form, 'transaction': transaction})
     def post(self, request, *args, **kwargs):
-        
         form = self.form_class(request.POST)
         transaction = Transaction.objects.get(pk=self.kwargs.get('pk'))
         next_string = request.POST.get('next', '/')
@@ -327,6 +326,11 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         order_by = self.request.GET.get('order_by')
         current_year = self.request.GET.get('year')
         unmatched_invoice = self.request.GET.get('unmatched_invoice')
+        address = self.request.GET.get('address')
+        addresses = Rental_Unit.objects.all()
+        rental_units = list(addresses.values('id', 'address__address', 'suite'))
+        ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
+
         if not query is None:
             for word in query.split(" "):
                 if word.isdigit():
@@ -340,6 +344,8 @@ class ExpenseListView(LoginRequiredMixin, ListView):
             order_by = '-date_filed'
         if current_year != 'all':
             q = q & Q(record_date__year__gte = datetime.now().year)
+        if address and address != 'all':
+            q = q & Q(address = ru_dicts[address])
         return q
     def get_queryset(self):
         query = self.request.GET.get('q')
@@ -348,9 +354,13 @@ class ExpenseListView(LoginRequiredMixin, ListView):
             queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
         return queryset.filter(self.get_q()).order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
+        context = {}
         results = self.get_queryset()
+        addresses = Rental_Unit.objects.all()
         page_obj = get_paginator_object(results, 50, request)
-        return render(request, self.template_name, {'page_obj': page_obj})
+        context['addresses'] = addresses
+        context['page_obj'] = page_obj
+        return render(request, self.template_name, context)
 
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Document
@@ -406,6 +416,7 @@ class RevenueListView(LoginRequiredMixin, ListView):
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
+
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
 
@@ -447,6 +458,7 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('revenue_list')
     
     def post(self, request, *args, **kwargs):
+        
         form = self.form_class(request.POST)
         next_string = request.POST.get('next', '/')
         if form.is_valid():
@@ -574,7 +586,6 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
         context = {}
         successful_uploads = request.session.get('successful_uploads', [])
         failed_uploads = request.session.get('failed_uploads', [])
-        #import pdb ; pdb.set_trace()
         selected_tax_year = request.session.get('selected_tax_year', datetime.now().year)
         form_class = self.get_form_class()
 
@@ -725,7 +736,6 @@ class GetTaxReportView(LoginRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            #import pdb; pdb.set_trace()
             tax_year = form.cleaned_data['tax_year']
             gc = gspread.service_account(filename='cloud_keys/tbi-finance-a3f1a4fd0be6.json')
             report_name = 'Tran Ba Investment Group Tax Report ' + tax_year

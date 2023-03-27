@@ -16,6 +16,14 @@
     <option value="current">Current Year</option>
     <option value="all">All</option>
   </select>
+
+  <label for="address">Property</label>
+  <select name="address" id="address">
+    <option value="all">All</option>
+    {% for address in addresses %}
+      <option value="{{address.address.address}} {{address.suite}}">{{address.address.address}} {{address.suite}}</option>
+    {% endfor %}
+  </select>
   {% block extra_form %}
   {% endblock extra_form %}
   <button class="btn btn-info ml-2" type="submit">Go</button>
@@ -30,6 +38,7 @@
     var query_str = "{{request.GET.q}}";
     var order_by_str = "{{request.GET.order_by}}";
     var year_str = "{{request.GET.year}}";
+    var address_str = "{{request.GET.address}}"
     if (order_by_str && order_by_str.length > 0) {
       $('#order_by').val(order_by_str);
     }
@@ -38,6 +47,9 @@
     }
     if (query_str && query_str.length > 0) {
       $('#q').val(query_str);
+    }
+    if (address_str && address_str.length > 0) {
+      $('#address').val(address_str);
     }
   });
 </script>

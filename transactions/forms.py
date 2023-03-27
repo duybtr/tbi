@@ -24,6 +24,13 @@ class RawInvoiceUpdateForm(forms.ModelForm):
 
 class CreateExpenseForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
+    next = forms.CharField(widget = forms.HiddenInput())
+    class Meta:
+        model = Expense
+        exclude = ['author', 'date_uploaded','date_filed','raw_invoice','next']
+        #widgets = {'next' :  forms.HiddenInput()}
+
+class UpdateExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
         exclude = ['author', 'date_uploaded','date_filed','raw_invoice']
