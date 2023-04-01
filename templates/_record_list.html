@@ -13,8 +13,10 @@
   &nbsp;&nbsp;
   <label for="year"> Year: </label>
    <select name="year" id="year">
-    <option value="current">Current Year</option>
     <option value="all">All</option>
+    {% for year in years %}
+    <option value="{{ year }}">{{ year }}</option>
+    {% endfor %}
   </select>
 
   <label for="address">Address</label>

@@ -342,8 +342,10 @@ class ExpenseListView(LoginRequiredMixin, ListView):
                 q = q & Q(searchable_text__icontains=word)
         if order_by is None:
             order_by = '-date_filed'
-        if current_year != 'all':
-            q = q & Q(record_date__year__gte = datetime.now().year)
+        if not current_year or current_year == 'all':
+            q = q & Q(record_date__year__lte = datetime.now().year)
+        else:
+            q = q & Q(record_date__year = current_year)
         if address and address != 'all':
             q = q & Q(address = ru_dicts[address])
         return q
@@ -358,8 +360,10 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         results = self.get_queryset()
         addresses = Rental_Unit.objects.all()
         page_obj = get_paginator_object(results, 50, request)
+        curr_year = datetime.now().year 
         context['addresses'] = addresses
         context['page_obj'] = page_obj
+        context['years'] = list(range(curr_year, curr_year-5, -1))
         return render(request, self.template_name, context)
 
 class DocumentListView(LoginRequiredMixin, ListView):
