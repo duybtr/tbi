@@ -428,8 +428,10 @@ class RevenueListView(LoginRequiredMixin, ListView):
         results = self.get_queryset()
         addresses = Rental_Unit.objects.all()
         page_obj = get_paginator_object(results, 50, request)
+        curr_year = datetime.now().year 
         context['addresses'] = addresses
         context['page_obj'] = page_obj
+        context['years'] = list(range(curr_year, curr_year-5, -1))
         return render(request, self.template_name, context)
 
 class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
