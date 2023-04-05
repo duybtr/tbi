@@ -144,7 +144,11 @@ class Record(models.Model):
         formatted_address = format_for_storage(str(self.address.address))
         year = self.record_date.year
         return '{}/{}/{}'.format(formatted_address, self.record_dir, year)
+
+class Expense_Category(models.Model):
+    expense_category = models.CharField(max_length=50)
     
+
 class Expense(Record):
     record_dir = 'invoices'
     EXPENSE_TYPES = (
@@ -172,7 +176,14 @@ class Expense(Record):
         null=True,
     )
     expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES, blank=True, null=True)
-        
+    expense_category = models.ForeignKey(
+        Expense_Category,
+        on_delete = models.CASCADE,
+        related_name = 'expense_categories',
+        blank = True,
+        null = True,
+    )
+
 class Revenue(Record):
     record_dir = 'checks'
     REVENUE_TYPES = (
