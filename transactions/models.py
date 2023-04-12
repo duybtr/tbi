@@ -147,11 +147,12 @@ class Record(models.Model):
 
 class Expense_Category(models.Model):
     expense_category = models.CharField(max_length=50)
-    
+    def __str__(self):
+        return self.expense_category
 
 class Expense(Record):
     record_dir = 'invoices'
-    EXPENSE_TYPES = (
+    """ EXPENSE_TYPES = (
         ("misc", "Misc"),
         ('advertising', 'Advertising'),
         ('management_fee', 'Management Fee'),
@@ -168,14 +169,14 @@ class Expense(Record):
         ('payroll', 'Payroll'),
         ('payroll tax', 'Payroll Tax'),
         ('property_purchase', 'Property Purchase')
-    )
+    ) """
     raw_invoice = models.ForeignKey(
         Raw_Invoice,
         models.SET_NULL,
         blank=True,
         null=True,
     )
-    expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES, blank=True, null=True)
+    #expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES, blank=True, null=True)
     expense_category = models.ForeignKey(
         Expense_Category,
         on_delete = models.CASCADE,

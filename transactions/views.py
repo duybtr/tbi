@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
+from .models import Transaction, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -326,6 +326,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         order_by = self.request.GET.get('order_by')
         current_year = self.request.GET.get('year')
         unmatched_invoice = self.request.GET.get('unmatched_invoice')
+        category = self.request.GET.get('category')
         address = self.request.GET.get('address')
         addresses = Rental_Unit.objects.all()
         rental_units = list(addresses.values('id', 'address__address', 'suite'))
@@ -348,6 +349,9 @@ class ExpenseListView(LoginRequiredMixin, ListView):
             q = q & Q(record_date__year = current_year)
         if address and address != 'all':
             q = q & Q(address = ru_dicts[address])
+        if category and category != 'all':
+            q = q & Q(expense_category__expense_category = category)
+
         return q
     def get_queryset(self):
         query = self.request.GET.get('q')
@@ -361,6 +365,9 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         addresses = Rental_Unit.objects.all()
         page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
+        category_objs = Expense_Category.objects.all()
+        categories = [c['expense_category'] for c in category_objs.values('expense_category')]
+        context['categories'] = categories
         context['addresses'] = addresses
         context['page_obj'] = page_obj
         context['years'] = list(range(curr_year, curr_year-5, -1))

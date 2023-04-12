@@ -9,6 +9,13 @@
 <!-- &nbsp;&nbsp;
 <input type="checkbox" id="unmatched_expense" name="unmatched_expense" value="yes">
 <label for="unmatched_invoice">Unmatched invoice</label> -->
+<label for="category"> Category: </label>
+<select name="category" id="category">
+  <option value="all">All</option>
+  {% for category in categories %}
+      <option value="{{ category }}">{{ category }}</option>
+  {% endfor %}
+</select>
 {% endblock extra_form %}
 {% block table_content %}
 <table class="table table-striped" style="width:auto">
@@ -16,7 +23,7 @@
       <tr>
         <th scope="col">Expense Date</th>
         <th scope="col">Address</th>
-        <th scope="col">Expense Type</th>
+        <th scope="col">Expense Category</th>
         <th scope="col">Expense Amount</th>
         <th scope="col">Invoice Image</th>
         <th scope="col">Note </th>
@@ -28,7 +35,7 @@
       <tr>
         <td>{{ expense.record_date }}</td>
         <td>{{ expense.address }}</td>
-        <td>{{ expense.get_expense_type_display }}</td>
+        <td>{{ expense.expense_category }}</td>
         <td>${{ expense.amount|intcomma }}</td>
         <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
         <td>{{ expense.note }}</td>
@@ -39,4 +46,15 @@
     </tbody>
   </table>
 {% endblock table_content %}
+{% block extra_script %}
+<script>
+  $(function(){
+    // prepopulate sort_by field
+    var category_str = "{{request.GET.category}}";
+    if (category_str && category_str.length > 0) {
+      $('#category').val(category_str);
+    }
+  });
+</script>
+{% endblock extra_script %}
 
