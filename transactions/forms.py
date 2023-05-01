@@ -32,13 +32,15 @@ class CreateExpenseForm(forms.ModelForm):
 class UpdateExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        exclude = ['author', 'date_uploaded','date_filed','raw_invoice']
+        exclude = ['author', 'date_uploaded','document_image', 'date_filed','raw_invoice']
         
 class CreateRevenueForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
     class Meta:
         model = Revenue
-        exclude = ['author', 'date_uploaded']
+        exclude = ['date_uploaded']
+        widgets = {'author' :  forms.HiddenInput()}
+
 
 class UploadDocumentForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))

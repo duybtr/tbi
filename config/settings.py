@@ -63,7 +63,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+SHELL_PLUS_PRINT_SQL = True
 
 # [START cloudrun_django_csrf]
 # SECURITY WARNING: It's recommended that you use this when
@@ -92,10 +92,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
-    'django_extensions',
     'django.contrib.humanize',
     
     #3rd_party
+    'django_extensions', #new
     'rest_framework', #new
     'transactions', #new
     'accounts', #new

@@ -10,7 +10,14 @@
     <option value="-record_date">Transaction Date</option>
     <option value="address">Address</option>
   </select> -->
-  &nbsp;&nbsp;
+  <br/>
+  <label for="start_date">Start Date</label>
+  <input type="date" id="start_date" name="start_date">
+  
+  <label for="end_date">End Date</label>
+  <input type="date" id="end_date" name="end_date">
+  <br/>
+
   <label for="year"> Year: </label>
    <select name="year" id="year">
     <option value="all">All</option>
@@ -41,6 +48,8 @@
     var order_by_str = "{{request.GET.order_by}}";
     var year_str = "{{request.GET.year}}";
     var address_str = "{{request.GET.address}}"
+    var start_date_str = "{{request.GET.start_date}}"
+    var end_date_str = "{{request.GET.end_date}}"
     if (order_by_str && order_by_str.length > 0) {
       $('#order_by').val(order_by_str);
     }
@@ -52,6 +61,15 @@
     }
     if (address_str && address_str.length > 0) {
       $('#address').val(address_str);
+    }
+    if (category_str && category_str.length > 0) {
+      $('#category').val(category_str);
+    }
+    if (start_date_str && start_date_str.length > 0) {
+      $('#start_date').val(start_date_str);
+    }
+    if (end_date_str && end_date_str.length > 0) {
+      $('#end_date').val(end_date_str);
     }
   });
 </script>

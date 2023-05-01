@@ -328,6 +328,8 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         unmatched_invoice = self.request.GET.get('unmatched_invoice')
         category = self.request.GET.get('category')
         address = self.request.GET.get('address')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
         addresses = Rental_Unit.objects.all()
         rental_units = list(addresses.values('id', 'address__address', 'suite'))
         ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
@@ -343,6 +345,11 @@ class ExpenseListView(LoginRequiredMixin, ListView):
                 q = q & Q(searchable_text__icontains=word)
         if order_by is None:
             order_by = '-date_filed'
+
+        if start_date:
+            q = q & Q(record_date__gte = start_date)
+        if end_date:
+            q = q & Q(record_date__lte = end_date)
         if not current_year or current_year == 'all':
             q = q & Q(record_date__year__lte = datetime.now().year)
         else:
@@ -357,12 +364,12 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         query = self.request.GET.get('q')
         queryset = Expense.objects.all()
         if not query is None:
-            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_type', Value(' '), 'note', output_field=TextField()))
+            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_category__expense_category', Value(' '), 'note', output_field=TextField()))
         return queryset.filter(self.get_q()).order_by('-record_date','address__address__address')
     def get(self, request, *args, **kwargs):
         context = {}
         results = self.get_queryset()
-        addresses = Rental_Unit.objects.all()
+        addresses = Rental_Unit.objects.filter(is_available=True).order_by('address__address','suite')
         page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         category_objs = Expense_Category.objects.all()
@@ -404,6 +411,8 @@ class RevenueListView(LoginRequiredMixin, ListView):
         current_year = self.request.GET.get('year')
         queryset = Revenue.objects.all()
         queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
         addresses = Rental_Unit.objects.all()
         address = self.request.GET.get('address')
         rental_units = list(addresses.values('id', 'address__address', 'suite'))
@@ -417,6 +426,10 @@ class RevenueListView(LoginRequiredMixin, ListView):
                 q = q | Q(address_and_suite__icontains=query) | Q(note__icontains=query)
             except ValueError:
                 q = Q(address_and_suite__icontains=query) | Q(note__icontains=query)
+        if start_date:
+            q = q & Q(record_date__gte = start_date)
+        if end_date:
+            q = q & Q(record_date__lte = end_date)
         if current_year != 'all':
             q = q & Q(record_date__year__gte = datetime.now().year) 
         if order_by is None:
@@ -433,7 +446,7 @@ class RevenueListView(LoginRequiredMixin, ListView):
     def get(self, request, *args, **kwargs):
         context = {}
         results = self.get_queryset()
-        addresses = Rental_Unit.objects.all()
+        addresses = Rental_Unit.objects.filter(is_available=True).order_by('address__address','suite')
         page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         context['addresses'] = addresses
@@ -445,32 +458,36 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/expense_edit.html'
-    #success_url = reverse_lazy('expense_list')
-    def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        next_string = request.POST.get('next', '/')
-        if form.is_valid():
-            return HttpResponseRedirect(next_string)  
-        return render(request, self.template_name, {'form': form})
-    def form_valid(self, form):
-        # grab previous expense from the database
-        # Expense.objects.get(pk=pk)
-        previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
-        updated_expense = form.save(commit=False)
-        logging.info('Updating expense: Changed_data {}'.format(previous_expense.pk, form.changed_data))
-        if 'document_image' in form.changed_data:
-            logging.info('Document image was changed')
-            logging.info('Previous document was {}'.format(previous_expense.document_image.name))
-            if updated_expense.document_image.name:
-                logging.info('Updating document to {}'.format(updated_expense.document_image.name))
-                store_in_gcs([updated_expense.document_image], GCS_ROOT_BUCKET, updated_expense.get_record_folder())
-                form.save()
-                os.remove(os.path.join(settings.MEDIA_ROOT, updated_expense.document_image.name))
-            else:
-                logging.info('Document {} was cleared'.format(previous_expense.document_image.name))
-            if previous_expense.document_image.name:       
-                delete_file(previous_expense.document_image, previous_expense.get_record_folder())
-        return super().form_valid(form)
+    success_url = reverse_lazy('expense_list')
+
+    # def post(self, request, *args, **kwargs):
+    #     form = self.form_class(request.POST, request.FILES)
+    #     next_string = request.POST.get('next', '/')
+    #     if form.is_valid():
+    #         return HttpResponseRedirect(next_string)  
+    #     return render(request, self.template_name, {'form': form})
+    # def form_valid(self, form):
+    #     # grab previous expense from the database
+    #     # Expense.objects.get(pk=pk)
+    #     previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
+    #     updated_expense = form.save(commit=False)
+    #     logging.info('Updating expense: Changed_data {}'.format(previous_expense.pk, form.changed_data))
+    #     updated_expense.author = request.user
+    #     if 'document_image' in form.changed_data:
+    #         logging.info('Document image was changed')
+    #         logging.info('Previous document was {}'.format(previous_expense.document_image.name))
+    #         if updated_expense.document_image.name:
+    #             logging.info('Updating document to {}'.format(updated_expense.document_image.name))
+    #             store_in_gcs([updated_expense.document_image], GCS_ROOT_BUCKET, updated_expense.get_record_folder())
+    #             form.save()
+    #             os.remove(os.path.join(settings.MEDIA_ROOT, updated_expense.document_image.name))
+    #         else:
+    #             logging.info('Document {} was cleared'.format(previous_expense.document_image.name))
+    #         if previous_expense.document_image.name:       
+    #             delete_file(previous_expense.document_image, previous_expense.get_record_folder())
+    #     else:
+    #         form.save()
+    #     return super().form_valid(form)
 
 class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     model = Revenue
@@ -478,18 +495,37 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'transactions/revenue_edit.html'
     success_url = reverse_lazy('revenue_list')
     
-    def post(self, request, *args, **kwargs):
-        
-        form = self.form_class(request.POST)
-        next_string = request.POST.get('next', '/')
-        if form.is_valid():
-            return HttpResponseRedirect(next_string)  
-        return render(request, self.template_name, {'form': form})
+    # def post(self, request, *args, **kwargs):
+    #     import pdb; pdb.set_trace()
+    #     form = self.form_class(request.POST, request.FILES)
+    #     next_string = request.POST.get('next', '/')
+    #     if form.is_valid():
+    #         #previous_revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
+    #         updated_revenue = form.save(commit=False)
+    #         logging.info('Updating revenue {}: Changed_data {}'.format(previous_revenue.pk, form.changed_data))
+    #         updated_revenue.author = request.user
+    #         if 'document_image' in form.changed_data:
+    #             logging.info('Document image was changed')
+    #             logging.info('Previous document was {}'.format(previous_revenue.document_image.name))
+    #             if updated_revenue.document_image.name:
+    #                 logging.info('Updating document to {}'.format(updated_revenue.document_image.name))
+    #                 store_in_gcs([updated_revenue.document_image], GCS_ROOT_BUCKET, updated_revenue.get_record_folder())
+    #                 form.save()
+    #                 os.remove(os.path.join(settings.MEDIA_ROOT, updated_revenue.document_image.name))
+    #             else:
+    #                 logging.info('Document {} was cleared'.format(previous_revenue.document_image.name))
+    #             if previous_revenue.document_image.name:       
+    #                 delete_file(previous_revenue.document_image.name, previous_revenue.get_record_folder())
+    #         else: 
+    #             form.save()
+    #         return HttpResponseRedirect(self.success_url)  
+    #     return render(request, self.template_name, {'form': form})
 
-    def form_valid(self, form):
+    """def form_valid(self, form):
+        import pdb; pdb.set_trace()
         # grab previous revenue from the database
         # Revenue.objects.get(pk=pk)
-        previous_revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
+        #previous_revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
         updated_revenue = form.save(commit=False)
         logging.info('Updating revenue {}: Changed_data {}'.format(previous_revenue.pk, form.changed_data))
         if 'document_image' in form.changed_data:
@@ -504,7 +540,7 @@ class RevenueUpdateView(LoginRequiredMixin, UpdateView):
                 logging.info('Document {} was cleared'.format(previous_revenue.document_image.name))
             if previous_revenue.document_image.name:       
                 delete_file(previous_revenue.document_image.name, previous_revenue.get_record_folder())
-        return super().form_valid(form)
+        return super().form_valid(form) """
 
 class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     model = Expense
