@@ -38,8 +38,10 @@ class CreateRevenueForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
     class Meta:
         model = Revenue
-        exclude = ['date_uploaded']
-        widgets = {'author' :  forms.HiddenInput()}
+        exclude = ['date_uploaded', 'author']
+        #widgets = {'author' :  forms.HiddenInput()}
+
+
 
 
 class UploadDocumentForm(forms.ModelForm):

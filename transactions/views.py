@@ -208,7 +208,7 @@ class CreateExpenseView(LoginRequiredMixin, CreateView):
     model = Expense
     form_class = CreateExpenseForm
     template_name = 'transactions/create_record.html'
-    success_url = reverse_lazy('upload_invoice')
+    success_url = reverse_lazy('expense_list')
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)

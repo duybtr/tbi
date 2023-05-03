@@ -3,7 +3,7 @@
 {% block content %}
     <h1>Delete Expense</h1>
     <form action="" method='POST'>{% csrf_token%}
-        <p>Are you sure you want to  delete the "{{expense.amount}} {{expense.expense_type}}" on {{expense.expense_date}}</p>
+        <p>Are you sure you want to  delete the "{{expense.amount}} {{expense.expense_category}}" on {{expense.record_date}}</p>
         <input type="submit" value="Confirm">
     </form> 
 {% endblock content %}
