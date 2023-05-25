@@ -30,7 +30,7 @@
   <select name="address" id="address">
     <option value="all">All</option>
     {% for address in addresses %}
-      <option value="{{address.address.address}} {{address.suite}}">{{address.address.address}} {{address.suite}}</option>
+      <option value="{{address}}">{{address}}</option>
     {% endfor %}
   </select>
   {% block extra_form %}

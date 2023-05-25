@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
+from .models import Transaction, Property, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -330,9 +330,9 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         address = self.request.GET.get('address')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
-        addresses = Rental_Unit.objects.all()
-        rental_units = list(addresses.values('id', 'address__address', 'suite'))
-        ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
+        
+        #rental_units = list(addresses.values('id', 'address__address', 'suite'))
+        #ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
 
         if not query is None:
             for word in query.split(" "):
@@ -355,7 +355,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         else:
             q = q & Q(record_date__year = current_year)
         if address and address != 'all':
-            q = q & Q(address = ru_dicts[address])
+            q = q & Q(address__address__address = address)
         if category and category != 'all':
             q = q & Q(expense_category__expense_category = category)
 
@@ -369,7 +369,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
     def get(self, request, *args, **kwargs):
         context = {}
         results = self.get_queryset()
-        addresses = Rental_Unit.objects.filter(is_available=True).order_by('address__address','suite')
+        addresses = Property.objects.all().order_by('address')
         page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         category_objs = Expense_Category.objects.all()
@@ -446,7 +446,7 @@ class RevenueListView(LoginRequiredMixin, ListView):
     def get(self, request, *args, **kwargs):
         context = {}
         results = self.get_queryset()
-        addresses = Rental_Unit.objects.filter(is_available=True).order_by('address__address','suite')
+        addresses = Rental_Unit.objects.all().order_by('address__address', 'suite')
         page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         context['addresses'] = addresses
