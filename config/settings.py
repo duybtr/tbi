@@ -140,6 +140,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+def access_secret_version(secret_version_id):
+    # Create the Secret Manager client.
+    client = secretmanager.SecretManagerServiceClient()
+
+    # Access the secret version.
+    response = client.access_secret_version(name=secret_version_id)
+
+    # Return the decoded payload.
+    return response.payload.data.decode('UTF-8')
+
+db_username = access_secret_version("projects/334572487877/secrets/db_username/versions/1")
+db_password = access_secret_version("projects/334572487877/secrets/db_password/versions/2")
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -155,8 +167,8 @@ if os.environ.get('K_REVISION', None):
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'HOST': '/cloudsql/tbi-finance:us-central1:tbi-postgres',
-            'USER': 'postgres',
-            'PASSWORD': 'testpass123',
+            'USER': db_username,
+            'PASSWORD': db_password,
             'NAME': 'postgres',
         }
     }
@@ -171,16 +183,16 @@ else:
             'HOST': '127.0.0.1',
             'PORT': '5432',
             'NAME': 'postgres',
-            'USER': 'postgres',
-            'PASSWORD': 'testpass123',
+            'USER': db_username,
+            'PASSWORD': db_password,
         },
         'dev' : {
             'ENGINE': 'django.db.backends.postgresql',
             'HOST': '127.0.0.1',
             'PORT': '5432',
             'NAME': 'test_db',
-            'USER': 'postgres',
-            'PASSWORD': 'testpass123',
+            'USER': db_username,
+            'PASSWORD': db_password,
         }
     }
 # [END db_setup]
