@@ -2,7 +2,8 @@
 {% load humanize %}
 
 {% block list_content %}
-<form id='filters' class="form-inline mt-2 mt-md-0" action="" method="get">
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-target="#query_results">
+  {% csrf_token %}
    <input name="q" id="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
    <!-- <label for="order_by"> Sort by: </label>
    <select name="order_by" id="order_by" value="">
@@ -27,18 +28,19 @@
   </select>
 
   <label for="address">Address</label>
-  <select name="address" id="address">
+  <select name="address" id="address" hx-get="/get_suites" hx-target="#suite-wrapper">
     <option value="all">All</option>
     {% for address in addresses %}
       <option value="{{address}}">{{address}}</option>
     {% endfor %}
   </select>
+  <div id="suite-wrapper" style="display:inline"></div>
   {% block extra_form %}
   {% endblock extra_form %}
-  <button class="btn btn-info ml-2" type="submit">Go</button>
-  </form>
-    {% block table_content %}
-    {% endblock table_content %}
+  <button hx-post="/{{ target_url }}" class="btn btn-info ml-2" type="submit">Go</button>
+</form>
+{% block table_content %}
+{% endblock table_content %}
 {% endblock list_content %}
 {% block custom_script %}
 <script>

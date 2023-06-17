@@ -1,5 +1,4 @@
-{% extends '_record_list.html' %}
-{% load humanize %}
+{% extends '_record_list_ajax.html' %}
 
 {% block top_nav %}
     <a class="p-2 text-dark" href="{% url 'upload_invoice' %}">Log an expense</a>
@@ -18,33 +17,7 @@
 </select>
 {% endblock extra_form %}
 {% block table_content %}
-<table class="table table-striped" style="width:auto">
-    <thead>
-      <tr>
-        <th scope="col">Expense Date</th>
-        <th scope="col">Address</th>
-        <th scope="col">Expense Category</th>
-        <th scope="col">Expense Amount</th>
-        <th scope="col">Invoice Image</th>
-        <th scope="col">Note </th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for expense in page_obj.object_list %}
-      <tr>
-        <td>{{ expense.record_date }}</td>
-        <td>{{ expense.address }}</td>
-        <td>{{ expense.expense_category }}</td>
-        <td>${{ expense.amount|intcomma }}</td>
-        <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
-        <td>{{ expense.note }}</td>
-        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
 {% endblock table_content %}
 {% block extra_script %}
 <script>

@@ -1,0 +1,109 @@
+{% extends '_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_results" hx-get="/{{ target_url }}" hx-indicator="#spinner">
+   <input name="q" id="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+   <!-- <label for="order_by"> Sort by: </label>
+   <select name="order_by" id="order_by" value="">
+    <option value="-date_filed">New</option>
+    <option value="-record_date">Transaction Date</option>
+    <option value="address">Address</option>
+  </select> -->
+  <br/>
+  <label for="start_date">Start Date</label>
+  <input type="date" id="start_date" name="start_date">
+  
+  <label for="end_date">End Date</label>
+  <input type="date" id="end_date" name="end_date">
+  <br/>
+
+  <label for="year"> Year: </label>
+   <select name="year" id="year">
+    <option value="all">All</option>
+    {% for year in years %}
+    <option value="{{ year }}">{{ year }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="address">Address</label>
+  <select name="address" id="address" hx-get="/get_suites" hx-target="#suite-wrapper">
+    <option value="all">All</option>
+    {% for address in addresses %}
+      <option value="{{address}}">{{address}}</option>
+    {% endfor %}
+  </select>
+  <div id="suite-wrapper" style="display:inline"></div>
+  {% block extra_form %}
+  {% endblock extra_form %}
+  <button class="btn btn-info ml-2" type="submit">Go</button>
+</form>
+<div class="d-flex justify-content-center">
+  <div id="spinner" class="spinner-border htmx-indicator" role="status">
+    <span class="sr-only"></span>
+  </div>
+</div>
+<div id="query_results">
+  {% block table_content %}
+  {% endblock table_content %}
+  <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="#" hx-target='#query_results' hx-get="/{{ target_url }}?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">&laquo; first</a>
+            <a href="#" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="#" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">next</a>
+            <a href="#" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+  </div>
+</div>
+{% endblock content %}
+{% block custom_script %}
+<script>
+  $(function(){
+    // prepopulate sort_by field
+    var query_str = "{{request.GET.q}}";
+    var order_by_str = "{{request.GET.order_by}}";
+    var year_str = "{{request.GET.year}}";
+    var address_str = "{{request.GET.address}}"
+    var start_date_str = "{{request.GET.start_date}}"
+    var end_date_str = "{{request.GET.end_date}}"
+    var category_str = "{{request.GET.category}}"
+    if (order_by_str && order_by_str.length > 0) {
+      $('#order_by').val(order_by_str);
+    }
+    if (year_str && year_str.length > 0) {
+      $('#year').val(year_str);
+    }
+    if (query_str && query_str.length > 0) {
+      $('#q').val(query_str);
+    }
+    if (address_str && address_str.length > 0) {
+      $('#address').val(address_str);
+    }
+    if (category_str && category_str.length > 0) {
+      $('#category').val(category_str);
+    }
+    if (start_date_str && start_date_str.length > 0) {
+      $('#start_date').val(start_date_str);
+    }
+    if (end_date_str && end_date_str.length > 0) {
+      $('#end_date').val(end_date_str);
+    }
+    $('form > button').on('click', function(){
+      $('#query_results').html("")
+    });
+  });
+</script>
+{% block extra_script %}
+{% endblock extra_script %}
+{% endblock custom_script %}
+
+

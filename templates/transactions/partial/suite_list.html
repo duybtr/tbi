@@ -1,0 +1,7 @@
+<label for="suite">Suite</label>
+<select name="suite" id="suite">
+    <option value="all">All</option>
+    {% for rental_unit in rental_units %}
+      <option value="{{rental_unit.suite}}">{{rental_unit.suite}}</option>
+    {% endfor %}
+</select>

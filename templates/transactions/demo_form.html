@@ -1,0 +1,17 @@
+<html>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<form hx-post="test_form" hx-target="#result">
+    <select id="fieldA">
+        <option>option_1</option>
+        <option>option_2</option>
+    </select>
+    <select id="fieldB">
+        <option>option_1</option>
+        <option>option_2</option>
+    </select>
+    <button type="submit">Go</button>
+</form>
+<div id="result"></div>
+<script src="https://unpkg.com/htmx.org@1.1.0"></script>
+</body>
+</html>

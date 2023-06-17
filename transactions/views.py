@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from .models import Transaction, Property, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
@@ -328,6 +328,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         unmatched_invoice = self.request.GET.get('unmatched_invoice')
         category = self.request.GET.get('category')
         address = self.request.GET.get('address')
+        suite = self.request.GET.get('suite')
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
         
@@ -356,6 +357,8 @@ class ExpenseListView(LoginRequiredMixin, ListView):
             q = q & Q(record_date__year = current_year)
         if address and address != 'all':
             q = q & Q(address__address__address = address)
+        if suite and suite != 'all':
+            q = q & Q(address__suite = suite)
         if category and category != 'all':
             q = q & Q(expense_category__expense_category = category)
 
@@ -378,6 +381,7 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         context['addresses'] = addresses
         context['page_obj'] = page_obj
         context['years'] = list(range(curr_year, curr_year-5, -1))
+        context['target_url'] = 'get_expense_list'
         return render(request, self.template_name, context)
 
 class DocumentListView(LoginRequiredMixin, ListView):
@@ -800,4 +804,68 @@ class GetTaxReportView(LoginRequiredMixin, FormView):
             redirect_url = "https://docs.google.com/spreadsheets/d/{}".format(sh.id)
             return HttpResponseRedirect(redirect_url)
         return render(request, self.template_name, {'form': form})
-        
+
+def get_suites(request):
+    address = request.GET.get('address')
+    rental_units = Rental_Unit.objects.filter(address__address=address).exclude(suite='').order_by('suite')
+    # return empty html requests
+    if len(rental_units) != 0:
+        return render(request, 'transactions/partial/suite_list.html', {'rental_units': rental_units})
+    else:
+        return HttpResponse()
+
+def get_expense_list(request):
+    q = Q()
+    query = request.GET.get('q')
+    order_by = request.GET.get('order_by')
+    current_year = request.GET.get('year')
+    unmatched_invoice = request.GET.get('unmatched_invoice')
+    category = request.GET.get('category')
+    address = request.GET.get('address')
+    suite = request.GET.get('suite')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if not query is None:
+        for word in query.split(" "):
+            if word.isdigit():
+                word = word.strip()
+                target_amount = float(word)
+                lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
+                q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
+                break
+            q = q & Q(searchable_text__icontains=word)
+    if order_by is None:
+        order_by = '-date_filed'
+
+    if start_date:
+        q = q & Q(record_date__gte = start_date)
+    if end_date:
+        q = q & Q(record_date__lte = end_date)
+    if not current_year or current_year == 'all':
+        q = q & Q(record_date__year__lte = datetime.now().year)
+    else:
+        q = q & Q(record_date__year = current_year)
+    if address and address != 'all':
+        q = q & Q(address__address__address = address)
+    if suite and suite != 'all':
+        q = q & Q(address__suite = suite)
+    if category and category != 'all':
+        q = q & Q(expense_category__expense_category = category)
+
+    query = request.GET.get('q')
+    queryset = Expense.objects.all()
+    if not query is None:
+        queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_category__expense_category', Value(' '), 'note', output_field=TextField()))
+    queryset = queryset.filter(q).order_by('-record_date','address__address__address')
+    page_obj = get_paginator_object(queryset, 50, request)
+    context = {}
+    context['page_obj'] = page_obj
+    context['target_url'] =  'get_expense_list'
+    return render(request, 'transactions/partial/expense_list.html', context)
+
+def get_test_form(request):
+    import pdb; pdb.set_trace()
+    context = {}
+    queryset = Expense.objects.all()
+    return HttpResponse()

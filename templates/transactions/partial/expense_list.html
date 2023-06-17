@@ -1,0 +1,46 @@
+{% load humanize %}
+<table class="table table-striped" style="width:auto">
+    <thead>
+      <tr>
+        <th scope="col">Expense Date</th>
+        <th scope="col">Address</th>
+        <th scope="col">Expense Category</th>
+        <th scope="col">Expense Amount</th>
+        <th scope="col">Invoice Image</th>
+        <th scope="col">Note </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for expense in page_obj.object_list %}
+      <tr>
+        <td>{{ expense.record_date }}</td>
+        <td>{{ expense.address }}</td>
+        <td>{{ expense.expense_category }}</td>
+        <td>${{ expense.amount|intcomma }}</td>
+        <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
+        <td>{{ expense.note }}</td>
+        <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
+        <td><a href="{% url 'expense_delete' expense.pk %}">Delete</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="#" class="query-trigger" hx-target='#query_results' hx-get="/{{ target_url }}?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">&laquo; first</a>
+            <a href="#" class="query-trigger" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="#" class="query-trigger" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">next</a>
+            <a href="#" class="query-trigger" hx-target='#query_results' hx-get="/{{ target_url }}?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.address %}&address={{request.GET.address}}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>

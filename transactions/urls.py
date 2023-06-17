@@ -40,6 +40,9 @@ from .views import (
     match_revenue,
     remove_match,
     FileInvoiceView,
+    get_suites,
+    get_expense_list,
+    get_test_form
 )
 
 urlpatterns = [
@@ -74,7 +77,6 @@ urlpatterns = [
     path('<int:transaction_pk>/<int:expense_pk>/match_expense', match_expense, name='match_expense'),
     path('<int:transaction_pk>/remove_match', remove_match, name='remove_match'),
     path('<int:transaction_pk>/<int:revenue_pk>/match_revenue', match_revenue, name='match_revenue'),
-    path('<int:transaction_pk>/remove_match', remove_match, name='remove_match'),
     path('<int:pk>/transaction_delete', TransactionDeleteView.as_view(), name='transaction_delete'),
     path('raw_invoices/', RawInvoiceListView.as_view(), name='raw_invoices'),
     path('review_invoices/', ReviewInvoiceListView.as_view(), name='review_invoices'),
@@ -82,5 +84,9 @@ urlpatterns = [
     path('<int:pk>/review_invoice_edit/', ReviewInvoiceEditView.as_view(), name='review_invoice_edit'),
     path('<int:pk>/raw_invoice_delete/', RawInvoiceDeleteView.as_view(), name='raw_invoice_delete'),
     path('<int:pk>/file_invoice/', FileInvoiceView.as_view(), name='file_invoice'),
+
+    path('get_suites', get_suites, name='get_suites'),
+    path('get_expense_list', get_expense_list, name='get_expense_list'),
+    path('test_form', get_test_form, name='test_form')
 
 ]
