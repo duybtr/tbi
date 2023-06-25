@@ -42,6 +42,7 @@ from .views import (
     FileInvoiceView,
     get_suites,
     get_expense_list,
+    get_revenue_list,
     get_test_form
 )
 
@@ -87,6 +88,7 @@ urlpatterns = [
 
     path('get_suites', get_suites, name='get_suites'),
     path('get_expense_list', get_expense_list, name='get_expense_list'),
+    path('get_revenue_list', get_revenue_list, name='get_expense_list'),
     path('test_form', get_test_form, name='test_form')
 
 ]

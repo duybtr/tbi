@@ -314,75 +314,20 @@ class CreateMatchingExpenseView(LoginRequiredMixin, CreateView):
         Transaction.objects.filter(pk=self.kwargs.get('pk')).update(match_id=expense_model.pk)
         return super().form_valid(form)
 
-class ExpenseListView(LoginRequiredMixin, ListView):
-    model = Expense
+class ExpenseListView(LoginRequiredMixin, TemplateView):
     template_name = 'transactions/expense_list.html'
-    context_object_name = 'expenses'
-    paginate_by = 50
-
-    def get_q(self):
-        q = Q()
-        query = self.request.GET.get('q')
-        order_by = self.request.GET.get('order_by')
-        current_year = self.request.GET.get('year')
-        unmatched_invoice = self.request.GET.get('unmatched_invoice')
-        category = self.request.GET.get('category')
-        address = self.request.GET.get('address')
-        suite = self.request.GET.get('suite')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        
-        #rental_units = list(addresses.values('id', 'address__address', 'suite'))
-        #ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
-
-        if not query is None:
-            for word in query.split(" "):
-                if word.isdigit():
-                    word = word.strip()
-                    target_amount = float(word)
-                    lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
-                    q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
-                    break
-                q = q & Q(searchable_text__icontains=word)
-        if order_by is None:
-            order_by = '-date_filed'
-
-        if start_date:
-            q = q & Q(record_date__gte = start_date)
-        if end_date:
-            q = q & Q(record_date__lte = end_date)
-        if not current_year or current_year == 'all':
-            q = q & Q(record_date__year__lte = datetime.now().year)
-        else:
-            q = q & Q(record_date__year = current_year)
-        if address and address != 'all':
-            q = q & Q(address__address__address = address)
-        if suite and suite != 'all':
-            q = q & Q(address__suite = suite)
-        if category and category != 'all':
-            q = q & Q(expense_category__expense_category = category)
-
-        return q
-    def get_queryset(self):
-        query = self.request.GET.get('q')
-        queryset = Expense.objects.all()
-        if not query is None:
-            queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_category__expense_category', Value(' '), 'note', output_field=TextField()))
-        return queryset.filter(self.get_q()).order_by('-record_date','address__address__address')
-    def get(self, request, *args, **kwargs):
-        context = {}
-        results = self.get_queryset()
+   
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         addresses = Property.objects.all().order_by('address')
-        page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         category_objs = Expense_Category.objects.all()
         categories = [c['expense_category'] for c in category_objs.values('expense_category')]
         context['categories'] = categories
         context['addresses'] = addresses
-        context['page_obj'] = page_obj
         context['years'] = list(range(curr_year, curr_year-5, -1))
         context['target_url'] = 'get_expense_list'
-        return render(request, self.template_name, context)
+        return context
 
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Document
@@ -402,61 +347,17 @@ class DocumentDeleteView(LoginRequiredMixin, DeleteView):
         return super(DocumentDeleteView, self).delete(*args, **kwargs)
 
 
-class RevenueListView(LoginRequiredMixin, ListView):
-    model = Revenue
+class RevenueListView(LoginRequiredMixin, TemplateView):
     template_name = 'transactions/revenue_list.html'
-    context_object_name = 'revenues'
-    paginate_by = 50
-
-    def get_queryset(self):
-        q = Q()
-        query = self.request.GET.get('q')
-        order_by = self.request.GET.get('order_by')
-        current_year = self.request.GET.get('year')
-        queryset = Revenue.objects.all()
-        queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        addresses = Rental_Unit.objects.all()
-        address = self.request.GET.get('address')
-        rental_units = list(addresses.values('id', 'address__address', 'suite'))
-        ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
-        if not query is None:
-            try:
-                query = query.strip()
-                target_amount = float(query)
-                lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
-                q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
-                q = q | Q(address_and_suite__icontains=query) | Q(note__icontains=query)
-            except ValueError:
-                q = Q(address_and_suite__icontains=query) | Q(note__icontains=query)
-        if start_date:
-            q = q & Q(record_date__gte = start_date)
-        if end_date:
-            q = q & Q(record_date__lte = end_date)
-        if current_year != 'all':
-            q = q & Q(record_date__year__gte = datetime.now().year) 
-        if order_by is None:
-            order_by = '-record_date'
-        if address and address != 'all':
-            q = q & Q(address = ru_dicts[address])
-        order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
-                         '-date_filed': ['-date_filed', 'address_and_suite'],
-                         'address' : ['address_and_suite', '-date_filed']
-                        }
-        
-        return queryset.filter(q).order_by(*order_by_dict[order_by])
     
-    def get(self, request, *args, **kwargs):
-        context = {}
-        results = self.get_queryset()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         addresses = Rental_Unit.objects.all().order_by('address__address', 'suite')
-        page_obj = get_paginator_object(results, 50, request)
         curr_year = datetime.now().year 
         context['addresses'] = addresses
-        context['page_obj'] = page_obj
         context['years'] = list(range(curr_year, curr_year-5, -1))
-        return render(request, self.template_name, context)
+        context['target_url'] = 'get_revenue_list'
+        return context
 
 class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     model = Expense
@@ -813,6 +714,56 @@ def get_suites(request):
         return render(request, 'transactions/partial/suite_list.html', {'rental_units': rental_units})
     else:
         return HttpResponse()
+
+def get_revenue_list(request):
+    q = Q()
+    query = request.GET.get('q')
+    order_by = request.GET.get('order_by')
+    current_year = request.GET.get('year')
+    queryset = Revenue.objects.all()
+    queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    addresses = Rental_Unit.objects.all()
+    address = request.GET.get('address')
+    rental_units = list(addresses.values('id', 'address__address', 'suite'))
+    ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
+    if not query is None:
+        try:
+            query = query.strip()
+            target_amount = float(query)
+            lower,upper = sorted((0.95*target_amount, 1.05*target_amount))
+            q = q & Q(amount__gte=lower) & Q(amount__lte=upper)
+            q = q | Q(address_and_suite__icontains=query) | Q(note__icontains=query)
+        except ValueError:
+            q = Q(address_and_suite__icontains=query) | Q(note__icontains=query)
+    if start_date:
+        q = q & Q(record_date__gte = start_date)
+    if end_date:
+        q = q & Q(record_date__lte = end_date)
+    if current_year != 'all':
+        q = q & Q(record_date__year__gte = datetime.now().year) 
+    if order_by is None:
+        order_by = '-record_date'
+    if address and address != 'all':
+        q = q & Q(address = ru_dicts[address])
+    order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
+                        '-date_filed': ['-date_filed', 'address_and_suite'],
+                        'address' : ['address_and_suite', '-date_filed']
+                    }
+    
+    results = queryset.filter(q).order_by(*order_by_dict[order_by])
+    context = {}
+    addresses = Rental_Unit.objects.all().order_by('address__address', 'suite')
+    page_obj = get_paginator_object(results, 50, request)
+    curr_year = datetime.now().year 
+    context['addresses'] = addresses
+    context['page_obj'] = page_obj
+    context['years'] = list(range(curr_year, curr_year-5, -1))
+    
+    return render(request, 'transactions/partial/revenue_list.html', context)       
+        
+
 
 def get_expense_list(request):
     q = Q()
