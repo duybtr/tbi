@@ -352,7 +352,7 @@ class RevenueListView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        addresses = Rental_Unit.objects.all().order_by('address__address', 'suite')
+        addresses = addresses = Property.objects.all().order_by('address')
         curr_year = datetime.now().year 
         context['addresses'] = addresses
         context['years'] = list(range(curr_year, curr_year-5, -1))
@@ -724,10 +724,7 @@ def get_revenue_list(request):
     queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-    addresses = Rental_Unit.objects.all()
     address = request.GET.get('address')
-    rental_units = list(addresses.values('id', 'address__address', 'suite'))
-    ru_dicts = {ru['address__address'] + ' ' + ru['suite'] :ru['id'] for ru in rental_units}
     if not query is None:
         try:
             query = query.strip()
@@ -754,13 +751,8 @@ def get_revenue_list(request):
     
     results = queryset.filter(q).order_by(*order_by_dict[order_by])
     context = {}
-    addresses = Rental_Unit.objects.all().order_by('address__address', 'suite')
     page_obj = get_paginator_object(results, 50, request)
-    curr_year = datetime.now().year 
-    context['addresses'] = addresses
     context['page_obj'] = page_obj
-    context['years'] = list(range(curr_year, curr_year-5, -1))
-    
     return render(request, 'transactions/partial/revenue_list.html', context)       
         
 
