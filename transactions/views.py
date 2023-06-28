@@ -352,7 +352,7 @@ class RevenueListView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        addresses = addresses = Property.objects.all().order_by('address')
+        addresses = Property.objects.all().order_by('address')
         curr_year = datetime.now().year 
         context['addresses'] = addresses
         context['years'] = list(range(curr_year, curr_year-5, -1))
@@ -725,6 +725,7 @@ def get_revenue_list(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     address = request.GET.get('address')
+    suite = request.GET.get('suite')
     if not query is None:
         try:
             query = query.strip()
@@ -743,7 +744,10 @@ def get_revenue_list(request):
     if order_by is None:
         order_by = '-record_date'
     if address and address != 'all':
-        q = q & Q(address = ru_dicts[address])
+        q = q & Q(address__address__address = address)
+    if suite and suite != 'all':
+        q = q & Q(address__suite = suite)
+    
     order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
                         '-date_filed': ['-date_filed', 'address_and_suite'],
                         'address' : ['address_and_suite', '-date_filed']
