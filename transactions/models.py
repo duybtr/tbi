@@ -81,7 +81,7 @@ class Rental_Unit(models.Model):
         related_name='rental_units'
     )
     suite = models.CharField(max_length=50, blank=True)
-    is_available = models.BooleanField(default=True)
+    is_current = models.BooleanField(default=True)
 
     def __str__(self):
         return '{} {}'.format(self.address, self.suite)
@@ -121,7 +121,7 @@ class Record(models.Model):
     address = models.ForeignKey(
         Rental_Unit,
         on_delete=models.CASCADE,
-        related_name='records',
+        related_name='records'
     )
     amount = models.DecimalField(max_digits=20, default = 0, decimal_places=2)
     document_image = models.FileField(blank=True, null=True)
@@ -176,7 +176,6 @@ class Expense(Record):
         blank=True,
         null=True,
     )
-    #expense_type = models.CharField(max_length=50, choices = EXPENSE_TYPES, blank=True, null=True)
     expense_category = models.ForeignKey(
         Expense_Category,
         on_delete = models.CASCADE,

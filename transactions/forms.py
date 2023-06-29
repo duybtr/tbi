@@ -23,7 +23,7 @@ class RawInvoiceUpdateForm(forms.ModelForm):
         exclude = ['upload_date', 'file_hash', 'invoice_image','date_filed','author']
 
 class CreateExpenseForm(forms.ModelForm):
-    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
+    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))
     class Meta:
         model = Expense
         exclude = ['author', 'date_uploaded','date_filed','raw_invoice','next']
@@ -35,7 +35,7 @@ class UpdateExpenseForm(forms.ModelForm):
         exclude = ['author', 'date_uploaded','document_image', 'date_filed','raw_invoice']
         
 class CreateRevenueForm(forms.ModelForm):
-    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
+    address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))
     class Meta:
         model = Revenue
         exclude = ['date_uploaded', 'author']
