@@ -99,7 +99,6 @@ INSTALLED_APPS = [
     'rest_framework', #new
     'transactions', #new
     'accounts', #new
-    
 
     
 ]

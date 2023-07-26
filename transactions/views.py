@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from django.views.generic import ListView
+from django.views.decorators.http import require_http_methods   
 from django.db.models import Q, Value, TextField
 from django.db.models.functions import Concat
 from django.db import IntegrityError
@@ -25,6 +26,7 @@ from decimal import Decimal
 from django.conf import settings
 from hashlib import md5
 from django.core.files.storage import default_storage
+from render_block import render_block_to_string
 import gspread
 
 
@@ -597,11 +599,11 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
                         current_file.seek(0)
                         store_in_gcs([current_file], GCS_ROOT_BUCKET, directory)
                         invoice.save()
-                        os.remove(full_file_path)
                     except IntegrityError as e:
                         if "duplicate key" in str(e):
                             logging.info("File {} has already been uploaded.".format(f.name))
                             failed_uploads.append(f.name)
+                os.remove(full_file_path)
                       
             request.session['successful_uploads'] = successful_uploads
             request.session['failed_uploads'] = failed_uploads
@@ -758,8 +760,39 @@ def get_revenue_list(request):
     page_obj = get_paginator_object(results, 50, request)
     context['page_obj'] = page_obj
     return render(request, 'transactions/partial/revenue_list.html', context)       
-        
+def get_expense_edit(request, expense_pk):
+    expense = Expense.objects.get(pk=expense_pk)
+    context = {}
+    context['expense'] = expense
+    context['form'] = UpdateExpenseForm(initial={
+        'record_date':expense.record_date,
+        'address': expense.address,
+        'expense_category': expense.expense_category,
+        'amount': expense.amount,
+        'note': expense.note
 
+    })
+    return render(request, 'transactions/partial/expense_edit.html', context)
+
+@require_http_methods(["GET", "POST"])
+def get_expense_row(request, expense_pk):
+    #import pdb; pdb.set_trace()
+    context = {}
+    expense = Expense.objects.get(pk=expense_pk)
+    if request.method == 'POST':
+        form = UpdateExpenseForm(request.POST, instance=expense)
+        # expense.record_date = request.POST.get('record_date')
+        # expense.address = 1 #request.POST.get('address')
+        # expense.amount = float(request.POST.get('amount'))
+        # expense.note = request.POST.get('note')
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, 'transactions/partial/expense_edit.html', context)
+    context['expense'] = expense
+    return render(request, 'transactions/partial/expense_row.html', context)
+    #Look into render_block_to_string to avoid duplicate code
+    #return render_block_to_string('transactions/partial/expense_list.html', 'expense_row', context)
 
 def get_expense_list(request):
     q = Q()

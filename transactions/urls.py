@@ -43,6 +43,8 @@ from .views import (
     get_suites,
     get_expense_list,
     get_revenue_list,
+    get_expense_edit,
+    get_expense_row,
     get_test_form
 )
 
@@ -86,9 +88,12 @@ urlpatterns = [
     path('<int:pk>/raw_invoice_delete/', RawInvoiceDeleteView.as_view(), name='raw_invoice_delete'),
     path('<int:pk>/file_invoice/', FileInvoiceView.as_view(), name='file_invoice'),
 
+
     path('get_suites', get_suites, name='get_suites'),
     path('get_expense_list', get_expense_list, name='get_expense_list'),
     path('get_revenue_list', get_revenue_list, name='get_expense_list'),
+    path('<int:expense_pk>/expense_edit', get_expense_edit, name='get_expense_edit'),
+    path('<int:expense_pk>/expense_row', get_expense_row, name='get_expense_row'),
     path('test_form', get_test_form, name='test_form')
 
 ]

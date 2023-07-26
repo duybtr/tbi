@@ -1,0 +1,27 @@
+{% load humanize %}
+<tr hx-target="this" hx-swap="outerHTML">
+    {% with record_date_f=expense.record_date|date:"Y-m-d" %}
+    <!-- <td><input type="date" name="record_date" form="expense_{{expense.pk}}" value="{{ record_date_f }}"></td> -->
+    <td>{{ form.record_date }}
+        {{ form.record_date.errors}}
+    </td>
+    {% endwith %}
+    <td>{{ form.address }}
+        {{ form.address.errors }}
+    </td>
+    <td>
+        {{ form.expense_category }}
+        {{ form.expense_category.errors }}
+    </td>
+    <td>
+        {{ form.amount }}
+        {{ form.amount.errors }}
+    </td>
+    <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
+    <td>
+        {{ form.note }}
+        {{ form.note.errors }}
+    </td>
+    <td><a href="#" hx-post="{% url 'get_expense_row' expense.pk %}" hx-include="closest tr" class="text-secondary"><svg class="bi bi-check-lg me-2" width="32" height="32"><use xlink:href="#checkmark"/></svg></a></td>
+    <td><a href="#" hx-get="{% url 'get_expense_row' expense.pk %}" hx-include="closest tr" class="text-secondary"><svg class="bi bi-x-lg me-2" width="32" height="32"><use xlink:href="#cancel"/></svg></a></td>
+</tr>
