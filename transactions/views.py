@@ -26,7 +26,7 @@ from decimal import Decimal
 from django.conf import settings
 from hashlib import md5
 from django.core.files.storage import default_storage
-from render_block import render_block_to_string
+#from render_block import render_block_to_string
 import gspread
 
 
