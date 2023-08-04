@@ -8,4 +8,4 @@
     <td>{{ expense.note }}</td>
     <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-include="closest tr"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
     <td><a href="{% url 'expense_delete' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></a></td>
-  </tr>
+</tr>

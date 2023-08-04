@@ -1,4 +1,5 @@
 {% load humanize %}
+<button class='btn' hx-get="{% url 'create_blank_revenue_row' %}" hx-target="next tbody" hx-swap="afterbegin" ><svg class="bi bi-plus" width="32" height="32"><use xlink:href="#plus"></svg></button>
 <table class="table table-striped w-100 d-block d-md-table">
     <thead>
       <tr>
@@ -13,15 +14,15 @@
     </thead>
     <tbody>
       {% for revenue in page_obj.object_list %}
-      <tr>
+      <tr hx-target="this" hx-swap="outerHTML">
         <td>{{ revenue.record_date }}</td>
         <td>{{ revenue.address }}</td>
         <td>{{ revenue.get_revenue_type_display }}</td>
         <td>${{ revenue.amount|intcomma }}</td>
         <!-- <td><a href="{{ revenue.get_full_path_to_gcs }}">{{ revenue.document_image.name }}</a></td> -->
         <td>{{ revenue.note }}</td>
-        <td><a href="{% url 'revenue_edit' revenue.pk %}">Edit</a></td>
-        <td><a href="{% url 'revenue_delete' revenue.pk %}">Delete</a></td>
+        <td><button class='btn' hx-get="{% url 'get_revenue_edit' revenue.pk %}" hx-include="closest tr"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
+        <td><a href="{% url 'revenue_delete' revenue.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></a></td>
       </tr>
       {% endfor %}
     </tbody>

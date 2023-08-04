@@ -44,8 +44,15 @@ from .views import (
     get_expense_list,
     get_revenue_list,
     get_expense_edit,
+    get_revenue_edit,
     get_expense_row,
-    get_test_form
+    get_revenue_row,
+    add_revenue_row,
+    add_expense_row,
+    create_blank_revenue_row,
+    create_blank_expense_row,
+    cancel_new_record,
+    get_test_form,
 )
 
 urlpatterns = [
@@ -61,13 +68,13 @@ urlpatterns = [
     path('list_transactions/', TransactionListView.as_view(), name='transaction_list'),
     path('list_unmatched_transactions/', UnmatchedTransactionListView.as_view(), name='unmatched_transaction_list'),
     path('<int:pk>/transaction_edit/', TransactionUpdateView.as_view(), name='transaction_edit'),
-    path('<int:pk>/expense_edit/', ExpenseUpdateView.as_view(), name='expense_edit'),
+    #path('<int:pk>/expense_edit/', ExpenseUpdateView.as_view(), name='expense_edit'),
     path('<int:pk>/expense_delete/', ExpenseDeleteView.as_view(), name='expense_delete'),
     path('list_expenses/', ExpenseListView.as_view(), name='expense_list'),
     path('list_revenues/', RevenueListView.as_view(), name='revenue_list'),
     path('list_document/', DocumentListView.as_view(), name='document_list'),
     path('<int:pk>/document_delete/', DocumentDeleteView.as_view(), name='document_delete'),
-    path('<int:pk>/revenue_edit', RevenueUpdateView.as_view(),name='revenue_edit'),
+    #path('<int:pk>/revenue_edit', RevenueUpdateView.as_view(),name='revenue_edit'),
     path('<int:pk>/revenue_delete/', RevenueDeleteView.as_view(), name='revenue_delete'),
     path('<int:pk>/list_matching_revenues/', MatchingRevenueListView.as_view(), name='matching_revenue_list'),
     path('<int:pk>/list_matching_expenses/', MatchingExpenseListView.as_view(), name='matching_expense_list'),
@@ -88,12 +95,18 @@ urlpatterns = [
     path('<int:pk>/raw_invoice_delete/', RawInvoiceDeleteView.as_view(), name='raw_invoice_delete'),
     path('<int:pk>/file_invoice/', FileInvoiceView.as_view(), name='file_invoice'),
 
-
     path('get_suites', get_suites, name='get_suites'),
     path('get_expense_list', get_expense_list, name='get_expense_list'),
     path('get_revenue_list', get_revenue_list, name='get_expense_list'),
     path('<int:expense_pk>/expense_edit', get_expense_edit, name='get_expense_edit'),
     path('<int:expense_pk>/expense_row', get_expense_row, name='get_expense_row'),
+    path('<int:revenue_pk>/revenue_edit', get_revenue_edit, name='get_revenue_edit'),
+    path('<int:revenue_pk>/revenue_row', get_revenue_row, name='get_revenue_row'),
+    path('create_blank_revenue_row', create_blank_revenue_row, name='create_blank_revenue_row'),
+    path('create_blank_expense_row', create_blank_expense_row, name='create_blank_expense_row'),
+    path('add_revenue_row', add_revenue_row, name='add_revenue_row'),
+    path('add_expense_row', add_expense_row, name='add_expense_row'),
+    path('cancel_new_record', cancel_new_record, name='cancel_new_record'),
     path('test_form', get_test_form, name='test_form')
 
 ]

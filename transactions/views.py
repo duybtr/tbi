@@ -6,7 +6,7 @@ import csv, io
 from django.shortcuts import render
 from django.contrib import messages
 from .models import Transaction, Property, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
-from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
+from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, UpdateRevenueForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -774,17 +774,79 @@ def get_expense_edit(request, expense_pk):
     })
     return render(request, 'transactions/partial/expense_edit.html', context)
 
+def get_revenue_edit(request, revenue_pk):
+    revenue = Revenue.objects.get(pk=revenue_pk)
+    context = {}
+    context['revenue'] = revenue
+    context['form'] = UpdateRevenueForm(initial={
+        'record_date':revenue.record_date,
+        'address': revenue.address,
+        'revenue_type': revenue.revenue_type,
+        'amount': revenue.amount,
+        'note': revenue.note
+
+    })
+    return render(request, 'transactions/partial/revenue_edit.html', context)
+
+def create_blank_revenue_row(request):
+    context = {}
+    context['form'] = CreateRevenueForm()
+    return render(request, 'transactions/partial/create_blank_revenue_row.html', context)
+
+def create_blank_expense_row(request):
+    context = {}
+    context['form'] = CreateExpenseForm()
+    return render(request, 'transactions/partial/create_blank_expense_row.html', context)
+def cancel_new_record(request):
+    return HttpResponse()
+
+@require_http_methods(["GET", "POST"])    
+def add_revenue_row(request):
+    context = {}
+    if request.method == 'POST':
+        form = CreateRevenueForm(request.POST)
+        if form.is_valid():
+            revenue = form.save(commit=False)
+            revenue.author = request.user
+            form.save()
+            context['revenue'] = revenue
+        else:
+            return render(request, 'transactions/partial/create_blank_revenue_row.html', context)
+    return render(request, 'transactions/partial/revenue_row.html', context)
+
+@require_http_methods(["GET", "POST"])    
+def add_expense_row(request):
+    context = {}
+    if request.method == 'POST':
+        form = CreateExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.author = request.user
+            form.save()
+            context['expense'] = expense
+        else:
+            return render(request, 'transactions/partial/create_blank_expense_row.html', context)
+    return render(request, 'transactions/partial/expense_row.html', context)
+
+@require_http_methods(["GET", "POST"])
+def get_revenue_row(request, revenue_pk=None):
+    context = {}
+    revenue = Revenue.objects.get(pk=revenue_pk)
+    if request.method == 'POST':
+        form = UpdateRevenueForm(request.POST, instance=revenue)
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, 'transactions/partial/revenue_edit.html', context)
+    context['revenue'] = revenue
+    return render(request, 'transactions/partial/revenue_row.html', context)
+
 @require_http_methods(["GET", "POST"])
 def get_expense_row(request, expense_pk):
-    #import pdb; pdb.set_trace()
     context = {}
     expense = Expense.objects.get(pk=expense_pk)
     if request.method == 'POST':
         form = UpdateExpenseForm(request.POST, instance=expense)
-        # expense.record_date = request.POST.get('record_date')
-        # expense.address = 1 #request.POST.get('address')
-        # expense.amount = float(request.POST.get('amount'))
-        # expense.note = request.POST.get('note')
         if form.is_valid():
             form.save()
         else:
@@ -845,7 +907,6 @@ def get_expense_list(request):
     return render(request, 'transactions/partial/expense_list.html', context)
 
 def get_test_form(request):
-    import pdb; pdb.set_trace()
     context = {}
     queryset = Expense.objects.all()
     return HttpResponse()

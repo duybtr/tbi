@@ -1,4 +1,5 @@
 {% load humanize %}
+<button class='btn' hx-get="{% url 'create_blank_expense_row' %}" hx-target="next tbody" hx-swap="afterbegin" ><svg class="bi bi-plus" width="32" height="32"><use xlink:href="#plus"></svg></button>
 <table class="table table-striped" style="width:auto">
     <thead>
       <tr>
