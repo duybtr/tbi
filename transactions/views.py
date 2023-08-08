@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 import csv, io
 from django.shortcuts import render
 from django.contrib import messages
-from .models import Transaction, Property, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
+from .models import Record, Transaction, Property, Expense, Expense_Category, Revenue, Statement, Raw_Invoice, Document, Rental_Unit
 from .forms import StatementUploadForm, TransactionUpdateForm, CreateExpenseForm, UpdateExpenseForm, UpdateRevenueForm, CreateRevenueForm, UploadMultipleInvoicesForm, RawInvoiceUpdateForm, SelectTaxYearForm, UploadDocumentForm
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse, reverse_lazy
@@ -798,6 +798,10 @@ def create_blank_expense_row(request):
     context['form'] = CreateExpenseForm()
     return render(request, 'transactions/partial/create_blank_expense_row.html', context)
 def cancel_new_record(request):
+    return HttpResponse()
+def delete_row(request, record_pk):
+    record = Record.objects.get(pk=record_pk)
+    record.delete()
     return HttpResponse()
 
 @require_http_methods(["GET", "POST"])    

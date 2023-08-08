@@ -248,8 +248,4 @@ REST_FRAMEWORK = {
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [str(BASE_DIR.joinpath('static'))] # new
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_FINDERS = [ # new
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' # new

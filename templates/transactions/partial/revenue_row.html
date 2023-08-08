@@ -7,5 +7,5 @@
     <!-- <td><a href="{{ revenue.get_full_path_to_gcs }}">{{ revenue.document_image.name }}</a></td> -->
     <td>{{ revenue.note }}</td>
     <td><button class='btn' hx-get="{% url 'get_revenue_edit' revenue.pk %}" hx-include="closest tr"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
-    <td><a href="{% url 'revenue_delete' revenue.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></a></td>
+    <td><button class='btn' hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s" hx-delete="{% url 'delete_row' revenue.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></button></td>
 </tr>

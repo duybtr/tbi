@@ -1,13 +1,15 @@
 {% load humanize %}
-<button class='btn' hx-get="{% url 'create_blank_expense_row' %}" hx-target="next tbody" hx-swap="afterbegin" ><svg class="bi bi-plus" width="32" height="32"><use xlink:href="#plus"></svg></button>
-<table class="table table-striped" style="width:auto">
+<button class='btn text-white bg-primary' hx-get="{% url 'create_blank_expense_row' %}" hx-target="next tbody" hx-swap="afterbegin" >Add a new expense</button>
+<br/>
+<br/>
+<table class="table">
     <thead>
       <tr>
         <th scope="col">Expense Date</th>
         <th scope="col">Address</th>
         <th scope="col">Expense Category</th>
-        <th scope="col">Expense Amount</th>
-        <th scope="col">Invoice Image</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Image</th>
         <th scope="col">Note </th>
         <th></th>
       </tr>
@@ -15,7 +17,7 @@
     <tbody>
       {% for expense in page_obj.object_list %}
       <!-- {% block expense_row %} -->
-      <tr hx-target="this" hx-swap="outerHTML">
+      <tr>
         <td>{{ expense.record_date }}</td>
         <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ expense.address }}</td>
         <td>{{ expense.expense_category }}</td>
@@ -26,8 +28,8 @@
           {% endif %}
         </td>
         <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ expense.note }}</td>
-        <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-include="closest tr"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
-        <td><a href="{% url 'expense_delete' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></a></td>
+        <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
+        <td><button class='btn' hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s" hx-delete="{% url 'delete_row' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></button></td>
       </tr>
       <!-- {% endblock %} -->
       {% endfor %}

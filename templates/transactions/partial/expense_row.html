@@ -1,11 +1,11 @@
 {% load humanize %}
-<tr hx-target="this" hx-swap="outerHTML">
+<tr>
     <td>{{ expense.record_date }}</td>
     <td>{{ expense.address }}</td>
     <td>{{ expense.expense_category }}</td>
     <td>${{ expense.amount|intcomma }}</td>
     <td><a href="{{ expense.get_full_path_to_gcs }}"><svg class="bi bi-file-image" width="32" height="32"><use xlink:href="#file-image"/></svg></a></td>
     <td>{{ expense.note }}</td>
-    <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-include="closest tr"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
-    <td><a href="{% url 'expense_delete' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></a></td>
+    <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
+    <td><button class='btn' hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s" hx-delete="{% url 'delete_row' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></button></td>
 </tr>

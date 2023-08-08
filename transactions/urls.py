@@ -52,6 +52,7 @@ from .views import (
     create_blank_revenue_row,
     create_blank_expense_row,
     cancel_new_record,
+    delete_row,
     get_test_form,
 )
 
@@ -107,6 +108,7 @@ urlpatterns = [
     path('add_revenue_row', add_revenue_row, name='add_revenue_row'),
     path('add_expense_row', add_expense_row, name='add_expense_row'),
     path('cancel_new_record', cancel_new_record, name='cancel_new_record'),
+    path('<int:record_pk>/delete_row', delete_row, name='delete_row'),
     path('test_form', get_test_form, name='test_form')
 
 ]
