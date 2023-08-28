@@ -6,6 +6,10 @@
     <td>${{ expense.amount|intcomma }}</td>
     <td><a href="{{ expense.get_full_path_to_gcs }}"><svg class="bi bi-file-image" width="32" height="32"><use xlink:href="#file-image"/></svg></a></td>
     <td>{{ expense.note }}</td>
-    <td><button class='btn' hx-get="{% url 'get_expense_edit' expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"><svg class="bi bi-pencil" width="32" height="32"><use xlink:href="#pencil"></svg></button></td>
-    <td><button class='btn' hx-confirm="Are you sure?" hx-target="closest tr" hx-swap="outerHTML swap:1s" hx-delete="{% url 'delete_row' expense.pk %}"><svg class="bi bi-trash3" width="32" height="32"><use xlink:href="#trash3"></svg></button></td>
+
+    {% url 'get_expense_edit' expense.pk as expense_edit_url %}
+    {% include 'transactions/partial/buttons/edit_row_button.html' with url=expense_edit_url %}
+    {% url 'delete_row' expense.pk as expense_delete_url %}
+    {% include 'transactions/partial/buttons/delete_row_button.html' with url=expense_delete_url %}
+    
 </tr>

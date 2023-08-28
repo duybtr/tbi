@@ -37,7 +37,7 @@
 {{ object_list|length }} potential match found:
 {% endif %}
 </h1>
-<a class="btn btn-primary w-25" role="button" href="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</a>
+<button class="btn text-white btn-primary w-25" hx-target="next tbody" hx-swap="afterbegin" hx-get="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</button>
 <table class="table table-striped">
     <thead>
       <tr>
@@ -53,16 +53,7 @@
     <tbody>
       {% if object_list|length > 0 %}
         {% for expense in object_list %}
-        <tr>
-          <td>{{ expense.record_date }}</td>
-          <td>{{ expense.address }}</td>
-          <td>{{ expense.get_expense_type_display }}</td>
-          <td>${{ expense.amount|intcomma }}</td>
-          <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;"><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
-          <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ expense.note }}</td>
-          <td><a href="{% url 'expense_edit' expense.pk %}">Edit</a></td>
-          <td><a href="{% url 'match_expense' target_transaction.pk expense.pk %}">Select</a></td>
-      </tr>
+          {% include 'transactions/partial/matching_expense_row.html' with expense=expense target_transaction=target_transaction  %}
         {% endfor %}
       {% endif %}
     </tbody>

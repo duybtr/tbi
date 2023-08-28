@@ -1,5 +1,5 @@
 {% load humanize %}
-<tr hx-target="this" hx-swap="outerHTML">
+<tr>
     {% with record_date_f=expense.record_date|date:"Y-m-d" %}
     <!-- <td><input type="date" name="record_date" form="expense_{{expense.pk}}" value="{{ record_date_f }}"></td> -->
     <td>{{ form.record_date }}
@@ -22,7 +22,7 @@
         {{ form.note }}
         {{ form.note.errors }}
     </td>
-    {% url 'get_expense_row' expense.pk as expense_submit_url %}
-    {% include 'transactions/partial/buttons/submit_row_button.html' with url=expense_submit_url %}
-    {% include 'transactions/partial/buttons/cancel_row_button.html' with url=expense_submit_url %}
+    {% url 'get_matching_expense_row' target_transaction.pk expense.pk as matching_expense_submit_url %}
+    {% include 'transactions/partial/buttons/submit_row_button.html' with url=matching_expense_submit_url %}
+    {% include 'transactions/partial/buttons/cancel_row_button.html' with url=matching_expense_submit_url %}
 </tr>

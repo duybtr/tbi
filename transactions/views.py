@@ -367,12 +367,15 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'transactions/expense_edit.html'
     success_url = reverse_lazy('expense_list')
 
-    # def post(self, request, *args, **kwargs):
-    #     form = self.form_class(request.POST, request.FILES)
-    #     next_string = request.POST.get('next', '/')
-    #     if form.is_valid():
-    #         return HttpResponseRedirect(next_string)  
-    #     return render(request, self.template_name, {'form': form})
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
+        updated_expense = form.save(commit=False)
+        updated_expense.author = request.user
+        next_string = request.POST.get('next', '/')
+        if form.is_valid():
+            return HttpResponseRedirect(next_string)  
+        return render(request, self.template_name, {'form': form})
     # def form_valid(self, form):
     #     # grab previous expense from the database
     #     # Expense.objects.get(pk=pk)
@@ -774,6 +777,21 @@ def get_expense_edit(request, expense_pk):
     })
     return render(request, 'transactions/partial/expense_edit.html', context)
 
+def get_matching_expense_edit(request, transaction_pk, expense_pk):
+    expense = Expense.objects.get(pk=expense_pk)
+    target_transaction = Transaction.objects.get(pk = transaction_pk)
+    context = {}
+    context['expense'] = expense
+    context['target_transaction'] = target_transaction
+    context['form'] = UpdateExpenseForm(initial={
+        'record_date':expense.record_date,
+        'address': expense.address,
+        'expense_category': expense.expense_category,
+        'amount': expense.amount,
+        'note': expense.note
+    })
+    return render(request, 'transactions/partial/matching_expense_edit.html', context)
+
 def get_revenue_edit(request, revenue_pk):
     revenue = Revenue.objects.get(pk=revenue_pk)
     context = {}
@@ -857,8 +875,22 @@ def get_expense_row(request, expense_pk):
             return render(request, 'transactions/partial/expense_edit.html', context)
     context['expense'] = expense
     return render(request, 'transactions/partial/expense_row.html', context)
-    #Look into render_block_to_string to avoid duplicate code
-    #return render_block_to_string('transactions/partial/expense_list.html', 'expense_row', context)
+
+@require_http_methods(["GET", "POST"])
+def get_matching_expense_row(request, transaction_pk, expense_pk):
+    context = {}
+    expense = Expense.objects.get(pk=expense_pk)
+    target_transaction = Transaction.objects.get(pk = transaction_pk)
+    if request.method == 'POST':
+        form = UpdateExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, 'transactions/partial/matching_expense_edit.html', context)
+    context['expense'] = expense
+    context['target_transaction'] = target_transaction
+    return render(request, 'transactions/partial/matching_expense_row.html', context)
+
 
 def get_expense_list(request):
     q = Q()
@@ -909,6 +941,19 @@ def get_expense_list(request):
     context['page_obj'] = page_obj
     context['target_url'] =  'get_expense_list'
     return render(request, 'transactions/partial/expense_list.html', context)
+
+def create_matching_expense(request, transaction_pk):
+    context = {}
+    target_transaction = Transaction.objects.get(pk=transaction_pk)
+    context['target_transaction'] = target_transaction
+    form = UpdateExpenseForm(initial={
+        'record_date':target_transaction.transaction_date, 
+        'amount':-1*target_transaction.transaction_amount, 
+        'note':target_transaction.transaction_description
+    })               
+    context['form'] = form
+    return render(request, 'transactions/partial/create_matching_expense.html', context)
+
 
 def get_test_form(request):
     context = {}
