@@ -158,7 +158,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         q = self.add_filters()
-        return Transaction.objects.filter(q).order_by('statement__statement_type', 'statement__account_number', 'transaction_date')
+        return Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
     
     def get(self, request, *args, **kwargs):
         results = self.get_queryset()
@@ -495,13 +495,12 @@ class MatchingExpenseListView(LoginRequiredMixin, ListView):
         target_transaction_amount_upper = -1*(target_transaction.transaction_amount * Decimal(1.1))
         target_transaction_amount_lower = -1*(target_transaction.transaction_amount * Decimal(0.9))
         context['target_transaction'] = target_transaction
-
+        request.session['transaction_pk'] = target_transaction.pk
         q = q & Q(record_date__range = date_range)
         q = q & Q(amount__lte = target_transaction_amount_upper) & Q(amount__gte = target_transaction_amount_lower)
         context['object_list'] = Expense.objects.filter(q).exclude(id__in=matched_expenses)
         return render(request, self.template_name, context)
     
-
 
 class MatchingRevenueListView(LoginRequiredMixin, ListView):
     model = Revenue
@@ -777,7 +776,7 @@ def get_expense_edit(request, expense_pk):
     })
     return render(request, 'transactions/partial/expense_edit.html', context)
 
-def get_matching_expense_edit(request, transaction_pk, expense_pk):
+def edit_matching_expense(request, transaction_pk, expense_pk):
     expense = Expense.objects.get(pk=expense_pk)
     target_transaction = Transaction.objects.get(pk = transaction_pk)
     context = {}
@@ -790,7 +789,7 @@ def get_matching_expense_edit(request, transaction_pk, expense_pk):
         'amount': expense.amount,
         'note': expense.note
     })
-    return render(request, 'transactions/partial/matching_expense_edit.html', context)
+    return render(request, 'transactions/partial/edit_matching_expense.html', context)
 
 def get_revenue_edit(request, revenue_pk):
     revenue = Revenue.objects.get(pk=revenue_pk)
@@ -815,6 +814,7 @@ def create_blank_expense_row(request):
     context = {}
     context['form'] = CreateExpenseForm()
     return render(request, 'transactions/partial/create_blank_expense_row.html', context)
+# Unlike the edit flow, in which hitting cancel returns an unmodified row, in the 'add new record' flow, there is no previous row to return to    
 def cancel_new_record(request):
     return HttpResponse()
 def delete_row(request, record_pk):
@@ -836,7 +836,7 @@ def add_revenue_row(request):
             return render(request, 'transactions/partial/create_blank_revenue_row.html', context)
     return render(request, 'transactions/partial/revenue_row.html', context)
 
-@require_http_methods(["GET", "POST"])    
+# the subsequent step for add_blank_expense_row
 def add_expense_row(request):
     context = {}
     if request.method == 'POST':
@@ -876,21 +876,34 @@ def get_expense_row(request, expense_pk):
     context['expense'] = expense
     return render(request, 'transactions/partial/expense_row.html', context)
 
-@require_http_methods(["GET", "POST"])
-def get_matching_expense_row(request, transaction_pk, expense_pk):
-    context = {}
-    expense = Expense.objects.get(pk=expense_pk)
+def initialize_matching_expense_form(request):
+    transaction_pk = request.session.get('transaction_pk', None)
     target_transaction = Transaction.objects.get(pk = transaction_pk)
-    if request.method == 'POST':
-        form = UpdateExpenseForm(request.POST, instance=expense)
-        if form.is_valid():
-            form.save()
-        else:
-            return render(request, 'transactions/partial/matching_expense_edit.html', context)
-    context['expense'] = expense
-    context['target_transaction'] = target_transaction
-    return render(request, 'transactions/partial/matching_expense_row.html', context)
+    form = CreateExpenseForm(initial={
+        'record_date':target_transaction.transaction_date, 
+        'amount':-1*target_transaction.transaction_amount, 
+        'note':target_transaction.transaction_description
+    })     
+    return form
 
+@require_http_methods(["GET", "POST"])
+# this method creating a new expense and match it with the target trasaction
+def submit_new_matching_expense(request):
+    context = {}
+    transaction_pk = request.session.get('transaction_pk', None)
+    if request.method == 'POST':
+        form = CreateExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.author = request.user
+            form.save()
+            Transaction.objects.filter(pk=transaction_pk).update(match_id=expense.pk)
+        else:
+            context['form'] = form
+            return render(request, 'transactions/partial/add_new_matching_expense.html', context)
+    response = HttpResponse()
+    response["HX-Redirect"] = reverse_lazy('unmatched_transaction_list')
+    return response
 
 def get_expense_list(request):
     q = Q()
@@ -942,17 +955,11 @@ def get_expense_list(request):
     context['target_url'] =  'get_expense_list'
     return render(request, 'transactions/partial/expense_list.html', context)
 
-def create_matching_expense(request, transaction_pk):
+def add_new_matching_expense(request):
     context = {}
-    target_transaction = Transaction.objects.get(pk=transaction_pk)
-    context['target_transaction'] = target_transaction
-    form = UpdateExpenseForm(initial={
-        'record_date':target_transaction.transaction_date, 
-        'amount':-1*target_transaction.transaction_amount, 
-        'note':target_transaction.transaction_description
-    })               
+    form = initialize_matching_expense_form(request) 
     context['form'] = form
-    return render(request, 'transactions/partial/create_matching_expense.html', context)
+    return render(request, 'transactions/partial/add_new_matching_expense.html', context)
 
 
 def get_test_form(request):

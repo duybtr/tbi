@@ -49,13 +49,13 @@ from .views import (
     get_revenue_row,
     add_revenue_row,
     add_expense_row,
-    get_matching_expense_row,
-    get_matching_expense_edit,
+    submit_new_matching_expense,
+    edit_matching_expense,
     create_blank_revenue_row,
     create_blank_expense_row,
     cancel_new_record,
     delete_row,
-    create_matching_expense,
+    add_new_matching_expense,
     get_test_form,
 )
 
@@ -106,15 +106,15 @@ urlpatterns = [
     path('<int:expense_pk>/expense_row', get_expense_row, name='get_expense_row'),
     path('<int:revenue_pk>/revenue_edit', get_revenue_edit, name='get_revenue_edit'),
     path('<int:revenue_pk>/revenue_row', get_revenue_row, name='get_revenue_row'),
-    path('<int:transaction_pk>/<int:expense_pk>/matching_expense_edit', get_matching_expense_edit, name='get_matching_expense_edit'),
-    path('<int:transaction_pk>/<int:expense_pk>/matching_expense_row', get_matching_expense_row, name='get_matching_expense_row'),
+    path('<int:transaction_pk>/<int:expense_pk>/edit_matching_expense', edit_matching_expense, name='edit_matching_expense'),
+    path('submit_new_matching_expense', submit_new_matching_expense, name='submit_new_matching_expense'),
     path('create_blank_revenue_row', create_blank_revenue_row, name='create_blank_revenue_row'),
     path('create_blank_expense_row', create_blank_expense_row, name='create_blank_expense_row'),
     path('add_revenue_row', add_revenue_row, name='add_revenue_row'),
     path('add_expense_row', add_expense_row, name='add_expense_row'),
     path('cancel_new_record', cancel_new_record, name='cancel_new_record'),
     path('<int:record_pk>/delete_row', delete_row, name='delete_row'),
-    path('<int:transaction_pk>/create_matching_expense/', create_matching_expense, name='create_matching_expense'),
+    path('add_new_matching_expense/', add_new_matching_expense, name='add_new_matching_expense'),
     path('test_form', get_test_form, name='test_form')
 
 ]

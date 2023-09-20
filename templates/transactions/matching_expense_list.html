@@ -37,7 +37,7 @@
 {{ object_list|length }} potential match found:
 {% endif %}
 </h1>
-<button class="btn text-white btn-primary w-25" hx-target="next tbody" hx-swap="afterbegin" hx-get="{% url 'create_matching_expense' target_transaction.pk %}">Add an expense</button>
+<button class="btn text-white btn-primary w-25" hx-target="next tbody" hx-swap="afterbegin" hx-get="{% url 'add_new_matching_expense' %}">Add an expense</button>
 <table class="table table-striped">
     <thead>
       <tr>

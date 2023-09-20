@@ -8,9 +8,8 @@
     <td>{{ expense.note }}</td>
 
     <td><button class='btn' hx-confirm="Are you sure?" hx-get="{% url 'match_expense' target_transaction.pk expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"><svg class="bi bi-check2-circle" width="32" height="32"><use xlink:href="#check2-circle"></svg></button></td>
-    {% url 'get_matching_expense_edit' target_transaction.pk expense.pk  as matching_expense_edit_url %}
-    <script>alert('{{ matching_expense_edit_url }}')</script>
-    {% include 'transactions/partial/buttons/edit_row_button.html' with url=matching_expense_edit_url %}
+    {% url 'edit_matching_expense' target_transaction.pk expense.pk as edit_matching_expense_url %}
+    {% include 'transactions/partial/buttons/edit_row_button.html' with url=edit_matching_expense_url %}
     {% url 'delete_row' expense.pk as expense_delete_url %}
     {% include 'transactions/partial/buttons/delete_row_button.html' with url=expense_delete_url %}
     
