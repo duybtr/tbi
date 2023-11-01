@@ -37,7 +37,7 @@ class UpdateRevenueForm(forms.ModelForm):
 class UpdateExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        exclude = ['author', 'date_uploaded','document_image', 'date_filed','raw_invoice']
+        exclude = ['author', 'date_uploaded', 'date_filed','raw_invoice']
 
 class CreateRevenueForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))

@@ -22,7 +22,7 @@
         {{ form.note }}
         {{ form.note.errors }}
     </td>
-    {% url 'get_matching_expense_row' target_transaction.pk expense.pk as matching_expense_submit_url %}
+    {% url 'get_matching_expense_row' expense.pk as matching_expense_submit_url %}
     {% include 'transactions/partial/buttons/submit_row_button.html' with url=matching_expense_submit_url %}
     {% include 'transactions/partial/buttons/cancel_row_button.html' with url=matching_expense_submit_url %}
 </tr>

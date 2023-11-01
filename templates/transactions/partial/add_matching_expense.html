@@ -22,7 +22,7 @@
         {{ form.note }}
         {{ form.note.errors }}
     </td>
-    <td><a href="#" hx-post="{% url 'submit_new_matching_expense' %}" hx-target="closest tr" hx-swap="outerHTML" hx-include="closest tr" hx-indicator="#submit_spinner"><svg class="bi bi-check-lg me-2" width="32" height="32"><use xlink:href="#checkmark"/></svg></a>
+    <td><a href="#" hx-post="{% url 'add_matching_expense_submit' %}" hx-target="closest tr" hx-swap="outerHTML" hx-include="closest tr" hx-indicator="#submit_spinner"><svg class="bi bi-check-lg me-2" width="32" height="32"><use xlink:href="#checkmark"/></svg></a>
 
     <div id="submit_spinner" class="spinner-border htmx-indicator" role="status">
         <span class="sr-only"></span>

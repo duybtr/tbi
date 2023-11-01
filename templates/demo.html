@@ -5,24 +5,22 @@
   <link rel="stylesheet" href="{% static 'css/demo.css' %}">
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-<form hx-post="test_form" hx-target="#result">
-    <select id="fieldA">
-        <option>option_1</option>
-        <option>option_2</option>
-    </select>
-    <select id="fieldB">
-        <option>option_1</option>
-        <option>option_2</option>
-    </select>
-    <button type="submit">Go</button>
-</form>
+
 <div>
-    <button hx-post="/test_form" hx-indicator="#spinner">
-        Post It!
-    </button>
-    <div id="spinner" class="spinner-border htmx-indicator" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
+
+    <form id='form' hx-encoding='multipart/form-data' hx-post="{% url 'upload_invoice' %}">
+        <input type='file' name='file'>
+        <button>
+            Upload
+        </button>
+        <progress id='progress' value='0' max='100'></progress>
+    </form>
+    <script>
+        htmx.on('#form', 'htmx:xhr:progress', function(evt) {
+          htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
+        });
+    </script>
+
 </div>
 <script src="https://unpkg.com/htmx.org@1.9.2" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous"></script>
 </body>

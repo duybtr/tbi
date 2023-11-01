@@ -17,7 +17,10 @@
         {{ form.amount }}
         {{ form.amount.errors }}
     </td>
-    <td><a href="{{ expense.get_full_path_to_gcs }}">{{ expense.document_image.name }}</a></td>
+    <td>
+        {{ form.document_image }}
+        {{ form.document_image.errors }}
+    </td>
     <td>
         {{ form.note }}
         {{ form.note.errors }}

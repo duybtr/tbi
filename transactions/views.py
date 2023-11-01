@@ -621,7 +621,7 @@ class RawInvoiceListView(LoginRequiredMixin, ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=False))
+        return Raw_Invoice.objects.filter(Q(date_filed__isnull=True) & Q(need_review=False)).order_by("-upload_date")
 
 class ReviewInvoiceListView(LoginRequiredMixin, ListView):
     model = Raw_Invoice
@@ -770,10 +770,11 @@ def get_expense_edit(request, expense_pk):
         'record_date':expense.record_date,
         'address': expense.address,
         'expense_category': expense.expense_category,
+        'document_image': expense.document_image,
         'amount': expense.amount,
         'note': expense.note
-
     })
+    
     return render(request, 'transactions/partial/expense_edit.html', context)
 
 def edit_matching_expense(request, transaction_pk, expense_pk):
@@ -791,6 +792,23 @@ def edit_matching_expense(request, transaction_pk, expense_pk):
     })
     return render(request, 'transactions/partial/edit_matching_expense.html', context)
 
+@require_http_methods(["GET", "POST"])
+def get_matching_expense_row(request, expense_pk):
+    import pdb; pdb.set_trace()
+    context = {}
+    transaction_pk = request.session.get('transaction_pk', None)
+    target_transaction = Transaction.objects.get(pk = transaction_pk)
+    context['target_transaction'] = target_transaction
+    expense = Expense.objects.get(pk=expense_pk)
+    if request.method == 'POST':
+        form = UpdateExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, 'transactions/partial/edit_matching_expense.html', context)
+    context['expense'] = expense
+    return render(request, 'transactions/partial/matching_expense_row.html', context)
+
 def get_revenue_edit(request, revenue_pk):
     revenue = Revenue.objects.get(pk=revenue_pk)
     context = {}
@@ -805,25 +823,32 @@ def get_revenue_edit(request, revenue_pk):
     })
     return render(request, 'transactions/partial/revenue_edit.html', context)
 
-def create_blank_revenue_row(request):
+def add_revenue(request):
     context = {}
     context['form'] = CreateRevenueForm()
-    return render(request, 'transactions/partial/create_blank_revenue_row.html', context)
+    return render(request, 'transactions/partial/add_revenue.html', context)
 
-def create_blank_expense_row(request):
+def add_expense(request):
     context = {}
     context['form'] = CreateExpenseForm()
-    return render(request, 'transactions/partial/create_blank_expense_row.html', context)
+    return render(request, 'transactions/partial/add_expense.html', context)
 # Unlike the edit flow, in which hitting cancel returns an unmodified row, in the 'add new record' flow, there is no previous row to return to    
 def cancel_new_record(request):
     return HttpResponse()
-def delete_row(request, record_pk):
-    record = Record.objects.get(pk=record_pk)
-    record.delete()
+def delete_revenue(request, revenue_pk):
+    revenue = Revenue.objects.get(pk=revenue_pk)
+    revenue.delete()
+    return HttpResponse()
+def delete_expense(request, expense_pk):
+    expense = Expense.objects.get(pk=expense_pk)
+    if expense.document_image.name:
+        delete_file(expense.document_image.name, expense.get_record_folder())
+    Transaction.objects.filter(match_id=expense_pk).update(match_id = 0)
+    expense.delete()
     return HttpResponse()
 
 @require_http_methods(["GET", "POST"])    
-def add_revenue_row(request):
+def add_revenue_submit(request):
     context = {}
     if request.method == 'POST':
         form = CreateRevenueForm(request.POST)
@@ -833,21 +858,26 @@ def add_revenue_row(request):
             form.save()
             context['revenue'] = revenue
         else:
-            return render(request, 'transactions/partial/create_blank_revenue_row.html', context)
+            return render(request, 'transactions/partial/add_revenue.html', context)
     return render(request, 'transactions/partial/revenue_row.html', context)
 
-# the subsequent step for add_blank_expense_row
-def add_expense_row(request):
+def add_expense_submit(request):
     context = {}
     if request.method == 'POST':
-        form = CreateExpenseForm(request.POST)
+        form = CreateExpenseForm(request.POST, request.FILES)
         if form.is_valid():
             expense = form.save(commit=False)
             expense.author = request.user
-            form.save()
+            form.save() 
             context['expense'] = expense
+            if expense.document_image.name:
+                tmp_file_name = format_for_storage(expense.document_image.name)
+                full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
+                with open(full_file_path, "rb") as current_file:
+                    store_in_gcs([current_file], GCS_ROOT_BUCKET, expense.get_record_folder())
+                os.remove(os.path.join(settings.MEDIA_ROOT, expense.document_image.name))
         else:
-            return render(request, 'transactions/partial/create_blank_expense_row.html', context)
+            return render(request, 'transactions/partial/add_expense.html', context)
     return render(request, 'transactions/partial/expense_row.html', context)
 
 @require_http_methods(["GET", "POST"])
@@ -865,12 +895,21 @@ def get_revenue_row(request, revenue_pk=None):
 
 @require_http_methods(["GET", "POST"])
 def get_expense_row(request, expense_pk):
+    import pdb; pdb.set_trace()
     context = {}
     expense = Expense.objects.get(pk=expense_pk)
     if request.method == 'POST':
-        form = UpdateExpenseForm(request.POST, instance=expense)
+        previous_invoice = expense.document_image.name
+        form = UpdateExpenseForm(request.POST, request.FILES, instance=expense)
         if form.is_valid():
             form.save()
+            if len(request.FILES) > 0:
+                tmp_file_name = format_for_storage(expense.document_image.name)
+                full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
+                with open(full_file_path, "rb") as current_file:
+                    store_in_gcs([current_file], GCS_ROOT_BUCKET, expense.get_record_folder())
+                os.remove(os.path.join(settings.MEDIA_ROOT, expense.document_image.name))
+                delete_file(previous_invoice, expense.get_record_folder())    
         else:
             return render(request, 'transactions/partial/expense_edit.html', context)
     context['expense'] = expense
@@ -888,7 +927,7 @@ def initialize_matching_expense_form(request):
 
 @require_http_methods(["GET", "POST"])
 # this method creating a new expense and match it with the target trasaction
-def submit_new_matching_expense(request):
+def add_matching_expense_submit(request):
     context = {}
     transaction_pk = request.session.get('transaction_pk', None)
     if request.method == 'POST':
@@ -900,7 +939,7 @@ def submit_new_matching_expense(request):
             Transaction.objects.filter(pk=transaction_pk).update(match_id=expense.pk)
         else:
             context['form'] = form
-            return render(request, 'transactions/partial/add_new_matching_expense.html', context)
+            return render(request, 'transactions/partial/add_matching_expense.html', context)
     response = HttpResponse()
     response["HX-Redirect"] = reverse_lazy('unmatched_transaction_list')
     return response
@@ -955,12 +994,11 @@ def get_expense_list(request):
     context['target_url'] =  'get_expense_list'
     return render(request, 'transactions/partial/expense_list.html', context)
 
-def add_new_matching_expense(request):
+def add_matching_expense(request):
     context = {}
     form = initialize_matching_expense_form(request) 
     context['form'] = form
-    return render(request, 'transactions/partial/add_new_matching_expense.html', context)
-
+    return render(request, 'transactions/partial/add_matching_expense.html', context)
 
 def get_test_form(request):
     context = {}
