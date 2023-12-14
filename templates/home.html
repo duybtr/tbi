@@ -5,15 +5,15 @@
 {% block title %}Tran Ba Investment Group{% endblock title %}
 
 {% block top_nav %}
-    <a class="p-2 text-dark" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
-    <a class="p-2 text-dark" href="{% url 'review_invoices' %}">Invoice Issues({{ review_invoice_count }})</a>
-    <a class="p-2 text-dark" href="{% url 'unmatched_transaction_list' %}">Unmatched Transactions({{ unmatched_transactions_count }})</a>
-    <a class="p-2 text-dark" href="{% url 'upload_multiple_invoices' %}">Upload Invoices</a>
-    <a class="p-2 text-dark" href="{% url 'upload_invoice' %}">Log an expense</a>
-    <a class="p-2 text-dark" href="{% url 'upload_check' %}">Log a revenue</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'review_invoices' %}">Invoice Issues({{ review_invoice_count }})</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'unmatched_transaction_list' %}">Unmatched Transactions({{ unmatched_transactions_count }})</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'upload_multiple_invoices' %}">Upload Invoices</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'upload_invoice' %}">Log an expense</a>
+      <a class="p-2 text-white text-decoration-none" href="{% url 'upload_check' %}">Log a revenue</a>
 {% endblock top_nav %}
 
 
 {% block content %}
-  <iframe width="800" height="600" src="https://lookerstudio.google.com/embed/reporting/30d21351-4394-436a-8bfd-441092a15a76/page/Myr0C" frameborder="0" style="border:0" allowfullscreen></iframe>
+  <iframe width="980" height="600" src="https://lookerstudio.google.com/embed/reporting/4f6a1db6-f66b-4fc1-bfb6-a5f95df39ef2/page/Myr0C" frameborder="0" style="border:0" allowfullscreen></iframe>
 {% endblock content %}

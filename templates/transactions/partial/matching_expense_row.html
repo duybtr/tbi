@@ -11,6 +11,6 @@
     {% url 'edit_matching_expense' target_transaction.pk expense.pk as edit_matching_expense_url %}
     {% include 'transactions/partial/buttons/edit_row_button.html' with url=edit_matching_expense_url %}
     {% url 'delete_expense' expense.pk as expense_delete_url %}
-    {% include 'transactions/partial/buttons/delete_expense_button.html' with url=expense_delete_url %}
+    {% include 'transactions/partial/buttons/delete_row_button.html' with url=expense_delete_url %}
     
 </tr>

@@ -161,6 +161,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
         return Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
     
     def get(self, request, *args, **kwargs):
+        #import pdb; pdb.set_trace()
         results = self.get_queryset()
         page_obj = get_paginator_object(results, 50, request)
         return render(request, self.template_name, {'page_obj': page_obj})
@@ -1004,3 +1005,4 @@ def get_test_form(request):
     context = {}
     queryset = Expense.objects.all()
     return HttpResponse()
+
