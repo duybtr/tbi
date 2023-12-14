@@ -3,7 +3,7 @@
 
 {% block list_content %}
 
-<form class="form-inline mt-2 mt-md-0" action="" method="GET">
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_results" hx-get="/get_transaction_list" hx-indicator="#spinner">
   <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
   <label for="start_date">Start Date:</label>
   <input type="date" id="start_date" name="start_date" min="2018-01-01">&nbsp;
@@ -13,19 +13,19 @@
 </form>
 
 <table class="table table-striped">
-    <thead>
-      <tr>
-        <th scope="col">Transaction Date</th>
-        <th scope="col">Account Number</th>
-        <th scope="col">Statement Type</th>
-        <th scope="col">Transaction Description</th>
-        <th scope="col">Transaction Amount</th>
-        <th scope="col">Matching Document</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for transaction in page_obj.object_list %}
-      <tr>
+  <thead>
+    <tr>
+      <th scope="col">Transaction Date</th>
+      <th scope="col">Account Number</th>
+      <th scope="col">Statement Type</th>
+      <th scope="col">Transaction Description</th>
+      <th scope="col">Transaction Amount</th>
+      <th scope="col">Matching Document</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for transaction in page_obj.object_list %}
+    <tr>
         <td>{{ transaction.transaction_date }}</td>
         <td>{{ transaction.statement.account_number }}</td>
         <td>{{ transaction.statement.get_statement_type_display }}</td>
@@ -42,10 +42,12 @@
         {% endif %}
         <td><a href="{% url 'transaction_edit' transaction.pk %}">Edit</a></td>
         <td><a href="{% url 'transaction_delete' transaction.pk %}">Delete</a></td>
-     </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+   </tr>
+   
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock list_content %}
 
 
