@@ -1,11 +1,10 @@
 {% extends '_base.html' %}
 {% load humanize %}
 
-{% block top_nav %}
-<a class="p-2 text-dark" href="{% url 'upload_csv' %}">Upload a statement</a>
-{% endblock top_nav %}
-
 {% block content %}
+
+<a class='btn text-white bg-primary' href="{% url 'upload_statement' %}">Upload a new statement</a>
+<br>
 <table class="table table-striped">
     <thead>
       <tr>
