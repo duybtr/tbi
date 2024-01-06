@@ -896,7 +896,6 @@ def get_revenue_row(request, revenue_pk=None):
 
 @require_http_methods(["GET", "POST"])
 def get_expense_row(request, expense_pk):
-    import pdb; pdb.set_trace()
     context = {}
     expense = Expense.objects.get(pk=expense_pk)
     if request.method == 'POST':
