@@ -1,8 +1,8 @@
 {% extends '_base.html' %}
 
 {% block content %}
-    <a href="{% url 'expense_list' %}">Back to expenses</a>
     <h1>Edit</h1>
+    <a href="{{ raw_invoice.get_full_path_to_gcs }}">Link to invoice</a> 
     <div class="container">
         <div class="row">
             <div class="col-sm">
@@ -41,7 +41,6 @@
                     <button class="btn btn-info ml-2" type="submit">Update</button>
                 </form>
             </div>
-            
             
         </div>
     </div>
