@@ -1,7 +1,7 @@
 {% load humanize %}
 <button class='btn text-white bg-primary' hx-get="{% url 'add_expense' %}" hx-target="next tbody" hx-swap="afterbegin" >Add a new expense</button>
 <br/>
-<table class="table">
+<table class="table table-striped w-100 d-block d-md-table">
     <thead>
       <tr>
         <th scope="col">Expense Date</th>

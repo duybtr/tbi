@@ -125,6 +125,7 @@ class Record(models.Model):
     )
     amount = models.DecimalField(max_digits=20, default = 0, decimal_places=2)
     document_image = models.FileField(blank=True, null=True)
+    #document_hash = models.TextField(max_length=32, unique=True, blank=True, null=True)
     note = models.TextField(max_length = 500, blank=True, null=True)
 
     date_filed = models.DateTimeField(auto_now=True)
