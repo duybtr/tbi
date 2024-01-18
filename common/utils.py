@@ -4,6 +4,7 @@
 from google.cloud import storage
 from django.core.paginator import Paginator
 import os
+from hashlib import md5
 
 
 GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
@@ -70,3 +71,12 @@ def get_paginator_object(result_set, max_per_page, request):
     paginator = Paginator(result_set, max_per_page)
     page_num = request.GET.get('page')
     return paginator.get_page(page_num)
+
+def calculate_file_hash(current_file):
+    md5_hash = md5()
+    while True:
+        buf = current_file.read(2**20)
+        if not buf:
+            break
+        md5_hash.update(buf)
+    return md5_hash.hexdigest()

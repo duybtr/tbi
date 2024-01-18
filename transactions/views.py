@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 from django.db.models import Q, Value, TextField
 from django.db.models.functions import Concat
 from django.db import IntegrityError
-from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file, get_paginator_object
+from common.utils import store_files, format_for_storage, list_blobs, get_full_path_to_gcs, rename_blob, store_in_gcs, GCS_ROOT_BUCKET, delete_file, calculate_file_hash, get_paginator_object
 from google.cloud import storage
 from django.core.paginator import Paginator
 import logging
@@ -583,20 +583,13 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
                 default_storage.save(tmp_file_name, f)
                 full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
                 with open(full_file_path, "rb") as current_file:
-                    md5_hash = md5()
-                    while True:
-                        buf = current_file.read(2**20)
-                        if not buf:
-                            break
-                        md5_hash.update(buf)
-                    logging.info("Calculated file hash is {}".format(md5_hash.hexdigest()))
                     try:
                         invoice = Raw_Invoice.objects.create(
                             upload_date = datetime.now(),
                             invoice_image = tmp_file_name,
                             author = request.user,
                             tax_year = int(tax_year),
-                            file_hash = md5_hash.hexdigest()
+                            file_hash = calculate_file_hash(current_file)
                         )
                         successful_uploads.append(f.name)    
                         current_file.seek(0)
@@ -688,6 +681,7 @@ class FileInvoiceView(LoginRequiredMixin, UpdateView):
             expense_model.raw_invoice = raw_invoice
             expense_model.document_image = raw_invoice.invoice_image
             expense_model.author = request.user
+            expense_model.document_hash = raw_invoice.file_hash
             Raw_Invoice.objects.filter(pk=pk).update(
                 date_filed=datetime.now()
             )
