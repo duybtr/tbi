@@ -92,4 +92,5 @@ class UploadMultipleInvoicesForm(forms.Form):
         initial=str(current_year),
     )
     invoices = MultipleFileField()
-    
+
+

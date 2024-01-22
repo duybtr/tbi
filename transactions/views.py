@@ -720,11 +720,13 @@ def get_revenue_list(request):
     order_by = request.GET.get('order_by')
     current_year = request.GET.get('year')
     queryset = Revenue.objects.all()
-    queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
     address = request.GET.get('address')
     suite = request.GET.get('suite')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+
+    queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
     if not query is None:
         try:
             query = query.strip()
@@ -746,6 +748,8 @@ def get_revenue_list(request):
         q = q & Q(address__address__address = address)
     if suite and suite != 'all':
         q = q & Q(address__suite = suite)
+
+   
     
     order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
                         '-date_filed': ['-date_filed', 'address_and_suite'],
@@ -943,12 +947,17 @@ def get_expense_list(request):
     query = request.GET.get('q')
     order_by = request.GET.get('order_by')
     current_year = request.GET.get('year')
-    unmatched_invoice = request.GET.get('unmatched_invoice')
-    category = request.GET.get('category')
     address = request.GET.get('address')
     suite = request.GET.get('suite')
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
+
+    unmatched_invoice = request.GET.get('unmatched_invoice')
+    category = request.GET.get('category')
+
+    queryset = Expense.objects.all()
+    if not query is None:
+        queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_category__expense_category', Value(' '), 'note', output_field=TextField()))
 
     if not query is None:
         for word in query.split(" "):
@@ -978,10 +987,13 @@ def get_expense_list(request):
         q = q & Q(expense_category__expense_category = category)
 
     query = request.GET.get('q')
-    queryset = Expense.objects.all()
-    if not query is None:
-        queryset = queryset.annotate(searchable_text=Concat('address__address__address', Value(' '), 'address__suite', Value(' '), 'expense_category__expense_category', Value(' '), 'note', output_field=TextField()))
-    queryset = queryset.filter(q).order_by('-record_date','address__address__address')
+    
+    order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
+                        '-date_filed': ['-date_filed', 'address_and_suite'],
+                        'address' : ['address_and_suite', '-date_filed']}
+
+    queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
+    queryset = queryset.filter(q).order_by(*order_by_dict[order_by])
     page_obj = get_paginator_object(queryset, 50, request)
     context = {}
     context['page_obj'] = page_obj
