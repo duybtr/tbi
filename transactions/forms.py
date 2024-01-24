@@ -26,7 +26,7 @@ class CreateExpenseForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))
     class Meta:
         model = Expense
-        exclude = ['author', 'date_uploaded','date_filed','raw_invoice','next']
+        exclude = ['author', 'date_uploaded','date_filed','raw_invoice','next','document_hash']
         #widgets = {'next' :  forms.HiddenInput()}
 
 class UpdateRevenueForm(forms.ModelForm):
@@ -51,7 +51,7 @@ class UploadDocumentForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
     class Meta:
         model = Document
-        exclude = ['author', 'date_uploaded', 'amount']
+        exclude = ['author', 'date_uploaded', 'amount', 'document_hash']
 
 class SelectTaxYearForm(forms.Form):
     current_year = datetime.now().year
