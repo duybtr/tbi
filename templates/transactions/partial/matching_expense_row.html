@@ -6,8 +6,8 @@
     <td>${{ expense.amount|intcomma }}</td>
     <td><a href="{{ expense.get_full_path_to_gcs }}"><svg class="bi bi-file-image" width="32" height="32"><use xlink:href="#file-image"/></svg></a></td>
     <td>{{ expense.note }}</td>
-
-    <td><button class='btn' hx-confirm="Are you sure?" hx-get="{% url 'match_expense' target_transaction.pk expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"><svg class="bi bi-check2-circle" width="32" height="32"><use xlink:href="#check2-circle"></svg></button></td>
+    <td><a class="text-black" style="display:block;padding-top:5px" href="{% url 'match_expense' target_transaction.pk expense.pk %}"><svg class="bi bi-check2-circle" width="32" height="32"><use xlink:href="#check2-circle"></svg></a></td>
+    <!-- q<td><button class='btn' hx-confirm="Are you sure?" hx-get="{% url 'match_expense' target_transaction.pk expense.pk %}" hx-target="closest tr" hx-include="closest tr" hx-swap="outerHTML"></button></td> -->
     {% url 'edit_matching_expense' target_transaction.pk expense.pk as edit_matching_expense_url %}
     {% include 'transactions/partial/buttons/edit_row_button.html' with url=edit_matching_expense_url %}
     {% url 'delete_expense' expense.pk as expense_delete_url %}
