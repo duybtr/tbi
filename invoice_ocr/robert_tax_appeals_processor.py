@@ -14,7 +14,8 @@ def process_date(date_string):
 def process_invoice_amount(amount_string):
     return locale.atof(amount_string.strip("$"), func=Decimal)
 
-def process_address(addresses, address_str):
+def process_address(address_str):
+    addresses = Rental_Unit.objects.all()
     rental_units = list(addresses.values('id', 'address__address', 'suite'))
     ru_dicts = {(ru['address__address'] + ' ' + ru['suite']).strip() :ru['id'] for ru in rental_units}
     match = re.match("RE: (\d+ .+) \d{4} tax year", address_str)
@@ -35,3 +36,11 @@ def process_detected_text(response):
     return raw_text
 
    
+from gcp_vision_base import async_detect_document
+
+gcs_source_uri = "gs://tran_ba_investment_group_llc/14258_Valverde_Point_Ln/invoices/2023/14258_Valverde_Point_Tax_Appeal_2023.pdf"
+gcs_destination_uri = "gs://tran_ba_investment_group_llc/14258_Valverde_Point_Tax_Appeal_2023"
+response = async_detect_document(gcs_source_uri, gcs_destination_uri)
+first_page_response = response["responses"][0]
+annotation = first_page_response["fullTextAnnotation"]         
+raw_text = annotation["text"]
