@@ -792,7 +792,6 @@ def edit_matching_expense(request, transaction_pk, expense_pk):
 
 @require_http_methods(["GET", "POST"])
 def get_matching_expense_row(request, expense_pk):
-    import pdb; pdb.set_trace()
     context = {}
     transaction_pk = request.session.get('transaction_pk', None)
     target_transaction = Transaction.objects.get(pk = transaction_pk)
