@@ -988,7 +988,8 @@ def get_expense_list(request):
     
     order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
                         '-date_filed': ['-date_filed', 'address_and_suite'],
-                        'address' : ['address_and_suite', '-date_filed']}
+                        'address' : ['address_and_suite', '-date_filed'],
+                        'amount' : ['-amount','-record_date']}
 
     queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
     queryset = queryset.filter(q).order_by(*order_by_dict[order_by])
