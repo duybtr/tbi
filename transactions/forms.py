@@ -32,7 +32,7 @@ class CreateExpenseForm(forms.ModelForm):
 class UpdateRevenueForm(forms.ModelForm):
     class Meta:
         model = Revenue
-        exclude = ['author', 'date_uploaded']
+        exclude = ['author', 'date_uploaded', 'document_hash']
 
 class UpdateExpenseForm(forms.ModelForm):
     class Meta:

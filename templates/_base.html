@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tran Ba Investment Group LLC</title>
-    <link rel="stylesheet" href="{% static 'css/sidebars.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
   </head>
@@ -118,44 +118,70 @@
     </svg>
        
     <main>
-        <div class="left-panel text-white bg-dark">
-            <div>
-                <a href="/" class="text-white text-decoration-none">
+          <div class="top-bar">
+              <div class="side-padding"></div>
+              <div>
+                <a href="{% url 'home' %}" class="text-white text-decoration-none">
                     <svg class="bi me-2" width="40" height="32"><use xlink:href="#gear-fill"/></svg>
                     <span class="fs-4">Tran Ba Group LLC</span>
                 </a>
-            </div>
-            <hr>
-          <ul class="nav nav-pills mb-auto" id="sidebar-menu">
-            <li class="nav-item">
-              {% url 'home' as home_url %}
-              <a href="{{ home_url }}" class="nav-link text-white {% if request.path == home_url %} active {% else %} '' {% endif %}" data-toggle="pill" aria-current="page">
-                <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"/></svg>
-                Home
-              </a>
-            </li>
-            <li class="nav-item">
-              {% url 'expense_list' as expense_url %}
-              <a href="{{ expense_url }}" class="nav-link text-white {% if request.path == expense_url %} active {% else %} '' {% endif %}" data-toggle="pill">
-                <svg class="bi me-2" width="16" height="16"><use xlink:href="#tools"/></svg>
-                Expenses
-              </a>
-            </li>
-            <li class="nav-item">
-              {% url 'revenue_list' as revenue_url %}
-              <a href="{{ revenue_url }}" class="nav-link text-white {% if request.path == revenue_url %} active {% else %} '' {% endif %}" data-toggle="pill">
-                <svg class="bi bi-coin me-2" width="16" height="16"><use xlink:href="#coin"/></svg>
-                Revenues
-              </a>
-            </li>
-  
-            <li class="nav-item">
-              {% url 'transaction_list' as transaction_url %}
-              <a href="{{ transaction_url }}" class="nav-link text-white {% if request.path == transaction_url %} active {% else %} '' {% endif %} " data-toggle="pill">
-                <svg class="bi bi-receipt-cutoff me-2" width="16" height="16"><use xlink:href="#receipt-cutoff"/></svg>
-                Transactions
-              </a>
-            </li>
+              </div>
+              <div class="main-menu">
+                <a href></a>
+                <a href></a>
+                {% url 'expense_list' as expense_url %}
+                <a href="{{ expense_url }}" class="nav-link text-white {% if request.path == expense_url %} active {% else %} '' {% endif %}" data-toggle="pill">
+                    Expenses
+                </a>
+                {% url 'revenue_list' as revenue_url %}
+                <a href="{{ revenue_url }}" class="nav-link text-white {% if request.path == revenue_url %} active {% else %} '' {% endif %}" data-toggle="pill">
+                    Revenues
+                </a>
+                {% url 'transaction_list' as transaction_url %}
+                <a href="{{ transaction_url }}" class="nav-link text-white {% if request.path == transaction_url %} active {% else %} '' {% endif %} " data-toggle="pill">
+                    Transactions
+                </a>
+
+                {% url 'get_tax_report' as tax_report_url %}
+                <a href="{{ tax_report_url }}" class="nav-link text-white {% if request.path == tax_report_url %} active {% else %} '' {% endif %} " data-toggle="pill">
+                  <svg class="bi bi-file-earmark-spreadsheet me-2" width="16" height="16"><use xlink:href="#file-earmark-spreadsheet"/></svg>
+                  Tax Report
+                </a>
+
+                {% url 'statement_list' as statement_url %}
+                <a href="{{ statement_url }}" class="nav-link text-white {% if request.path == statement_url %} active {% else %} '' {% endif %}" data-toggle="pill">
+                  <svg class="bi bi-bank me-2" width="16" height="16"><use xlink:href="#bank"/></svg>
+                  Statements
+                </a>
+
+                {% if user.is_authenticated %}
+                <div class="dropdown">
+                  <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg class="bi me-2" width="40" height="32"><use xlink:href="#people-circle"/></svg>
+                    <strong>{{user.username}}</strong>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                    <!-- <li><a class="dropdown-item" href="#">New project...</a></li>
+                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                    <li><a class="dropdown-item" href="#">Profile</a></li> -->
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/admin">Admin</a></li>
+                    <form method="POST" action="{% url 'logout' %}">
+                      {% csrf_token %}
+                      <li><button type="submit" class="dropdown-item">Sign out</button></li>
+                    </form>
+                  </ul>
+                </div>
+      
+                {% else %}
+                  <a class="p-2 text-dark" href="{% url 'login' %}">Log In</a>
+                {% endif %}
+
+              </div>
+              <div class="side-padding"></div>
+          </div>
+          <div class="c-example-divider"></div>
+          <!-- <ul class="nav nav-pills mb-auto" id="sidebar-menu">
         
             <li class="nav-item">
               {% url 'statement_list' as statement_url %}
@@ -180,45 +206,20 @@
                 Documents
               </a>
             </li>
-          </ul>
-          <hr>
-          {% if user.is_authenticated %}
-          <div class="dropdown">
-            <a href="#" class="align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-              <svg class="bi me-2" width="40" height="32"><use xlink:href="#people-circle"/></svg>
-              <strong>{{user.username}}</strong>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-              <!-- <li><a class="dropdown-item" href="#">New project...</a></li>
-              <li><a class="dropdown-item" href="#">Settings</a></li>
-              <li><a class="dropdown-item" href="#">Profile</a></li> -->
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="/admin">Admin</a></li>
-              <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
-            </ul>
-          </div>
-      
-          {% else %}
-            <a class="p-2 text-dark" href="{% url 'login' %}">Log In</a>
-          {% endif %}
-     
-          
-        </div>
-        <div class="sidebar-divider"></div> 
+          </ul> -->
         
-        <div class="right-panel">
+    
           <div class="top-nav bg-dark">
             <a class="p-2 text-white text-decoration-none" href="{% url 'raw_invoices' %}">Unfiled Invoices({{ unfiled_invoice_count }})</a>
             <a class="p-2 text-white text-decoration-none" href="{% url 'review_invoices' %}">Invoice Issues({{ review_invoice_count }})</a>
             <a class="p-2 text-white text-decoration-none" href="{% url 'unmatched_transaction_list' %}">Unmatched Transactions({{ unmatched_transactions_count }})</a>
             <a class="p-2 text-white text-decoration-none" href="{% url 'upload_multiple_invoices' %}">Upload Invoices</a>
           </div>
-          <div class="c-example-divider"></div>
+          
           <div class="content">
             {% block content %}
             {% endblock content %}
           </div>
-        </div>
     </main>
     <script src="https://unpkg.com/htmx.org@1.9.2" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>

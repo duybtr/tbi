@@ -96,9 +96,9 @@ INSTALLED_APPS = [
     
     #3rd_party
     'django_extensions', #new
-    'rest_framework', #new
     'transactions', #new
     'accounts', #new
+    'widget_tweaks', #new
 
     
 ]

@@ -15,6 +15,7 @@ django-extensions = "*"
 djangorestframework = "*"
 gspread = "*"
 gunicorn = "*"
+django-widget-tweaks = "*"
 
 [dev-packages]
 
