@@ -2,9 +2,9 @@
 {% load humanize %}
 
 {% block list_content %}
-
 <form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_results" hx-get="/get_transaction_list" hx-indicator="#spinner">
-  <input name="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+  <input name="q" class="search form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+  <br/>
   <label for="start_date">Start Date:</label>
   <input type="date" id="start_date" name="start_date" min="2018-01-01">&nbsp;
   <label for="end_date">End Date:</label>
