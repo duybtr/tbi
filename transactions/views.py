@@ -792,7 +792,6 @@ def edit_matching_expense(request, transaction_pk, expense_pk):
 
 @require_http_methods(["GET", "POST"])
 def get_matching_expense_row(request, expense_pk):
-    import pdb; pdb.set_trace()
     context = {}
     transaction_pk = request.session.get('transaction_pk', None)
     target_transaction = Transaction.objects.get(pk = transaction_pk)
@@ -989,7 +988,8 @@ def get_expense_list(request):
     
     order_by_dict = {'-record_date' :['-record_date', 'address_and_suite'],
                         '-date_filed': ['-date_filed', 'address_and_suite'],
-                        'address' : ['address_and_suite', '-date_filed']}
+                        'address' : ['address_and_suite', '-date_filed'],
+                        'amount' : ['-amount','-record_date']}
 
     queryset = queryset.annotate(address_and_suite=Concat('address__address__address', Value(' '), 'address__suite', output_field=TextField()))
     queryset = queryset.filter(q).order_by(*order_by_dict[order_by])

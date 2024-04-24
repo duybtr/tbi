@@ -1,0 +1,24 @@
+tr.htmx-swapping td {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+}
+
+.report {
+    text-align: center;
+}
+
+input.record_date {
+    width: 8em;
+}
+
+input.record_amount {
+    width: 6em;
+}
+input.search {
+    width: 30em;
+    border-color: black;
+}
+
+th.note {
+    width: 20%;
+}

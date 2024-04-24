@@ -32,7 +32,7 @@ class CreateExpenseForm(forms.ModelForm):
 class UpdateRevenueForm(forms.ModelForm):
     class Meta:
         model = Revenue
-        exclude = ['author', 'date_uploaded']
+        exclude = ['author', 'date_uploaded', 'document_hash']
 
 class UpdateExpenseForm(forms.ModelForm):
     class Meta:
@@ -43,7 +43,7 @@ class CreateRevenueForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))
     class Meta:
         model = Revenue
-        exclude = ['date_uploaded', 'author']
+        exclude = ['date_uploaded', 'author', 'document_hash']
         #widgets = {'author' :  forms.HiddenInput()}
 
 
@@ -80,7 +80,6 @@ class MultipleFileField(forms.FileField):
         else:
             result = single_file_clean(data, initial)
         return result
-    
 
 class UploadMultipleInvoicesForm(forms.Form):
     current_year = datetime.now().year
