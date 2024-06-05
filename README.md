@@ -1,3 +1,7 @@
+# Tutorial
+Follow this tutorial to deploy Django to Cloud Run: 
+https://www.youtube.com/watch?v=DvwhgXpLE-I
+
 # Setup Guide
 ## Step 1: Clone the project
 git clone https://github.com/duybtr/tbi.git
