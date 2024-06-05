@@ -9,7 +9,7 @@ git clone https://github.com/duybtr/tbi.git
 ## Step 2: Install Python dependencies
 cd tbi\
 pipenv shell\
-pipenv install\
+pipenv install
 
 ## Step 3: Install Google Cloud CLI
 https://cloud.google.com/sdk/docs/install
