@@ -19,6 +19,7 @@ import logging
 import google.cloud.logging
 from urllib.parse import urlparse
 
+IS_DEV = False
 
 client = google.cloud.logging.Client()
 client.setup_logging()

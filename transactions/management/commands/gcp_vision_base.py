@@ -32,6 +32,8 @@ def async_detect_document(gcs_source_uri, gcs_destination_uri):
     print("Waiting for the operation to finish.")
     operation.result(timeout=420)
 
+    #import pdb; pdb.set_trace()
+
     # Once the request has completed and the output has been
     # written to GCS, we can list all the output files.
     storage_client = storage.Client()
@@ -60,7 +62,6 @@ def async_detect_document(gcs_source_uri, gcs_destination_uri):
     json_string = output.download_as_bytes().decode("utf-8")
     response = json.loads(json_string)
 
-    import pdb; pdb.set_trace()
     return response
     # The actual response for the first page of the input file.
     #first_page_response = response["responses"][0]
@@ -71,4 +72,4 @@ def async_detect_document(gcs_source_uri, gcs_destination_uri):
     # annotation/pages/blocks/paragraphs/words/symbols
     # including confidence scores and bounding boxes
     #print("Full text:\n")
-    #print(annotation["text"])
+    #print(annotation["text"])``

@@ -32,13 +32,13 @@ import gspread
 
 # Initialize logging
 # Instantiates a client
-client = google.cloud.logging.Client()
+#client = google.cloud.logging.Client()
 
 # Retrieves a Cloud Logging handler based on the environment
 # you're running in and integrates the handler with the
 # Python logging module. By default this captures all logs
 # at INFO level and higher
-client.setup_logging()
+#client.setup_logging()
 
 class HomePageView(LoginRequiredMixin, TemplateView):
     template_name = 'home.html'
@@ -568,6 +568,7 @@ class UploadMultipleInvoicesView(LoginRequiredMixin, FormView):
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
+        import pdb; pdb.set_trace()
         directory = 'unfiled_invoices'
         form_class = self.get_form_class()
         form = self.get_form(form_class)

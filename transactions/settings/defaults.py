@@ -19,6 +19,8 @@ import logging
 import google.cloud.logging
 from urllib.parse import urlparse
 
+# Used in common_utils.py 
+IS_DEV = False
 
 client = google.cloud.logging.Client()
 client.setup_logging()

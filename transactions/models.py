@@ -180,7 +180,6 @@ class Expense(Record):
     expense_category = models.ForeignKey(
         Expense_Category,
         on_delete = models.CASCADE,
-        related_name = 'expense_categories',
         blank = True,
         null = True,
     )

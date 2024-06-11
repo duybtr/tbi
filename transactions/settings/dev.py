@@ -1,5 +1,7 @@
 from .defaults import *
 
+# Used in common_utils.py 
+IS_DEV = True
 DATABASES = {
     'default' : {
             'ENGINE': 'django.db.backends.postgresql',

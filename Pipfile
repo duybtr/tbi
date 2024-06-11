@@ -16,6 +16,7 @@ djangorestframework = "*"
 gspread = "*"
 gunicorn = "*"
 django-widget-tweaks = "*"
+google-cloud-vision = "*"
 
 [dev-packages]
 

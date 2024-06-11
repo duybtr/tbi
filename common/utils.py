@@ -5,9 +5,15 @@ from google.cloud import storage
 from django.core.paginator import Paginator
 import os
 from hashlib import md5
+from django.conf import settings
 
+if settings.IS_DEV:
+    GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc_test'
+else:    
+    GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
 
-GCS_ROOT_BUCKET = 'tran_ba_investment_group_llc'
+def update_root_bucket(new_name):
+    GCS_ROOT_BUCKET = new_name
 
 def format_for_storage(filename):
     # maybe use regex here instead
@@ -43,7 +49,9 @@ def store_in_gcs(files, bucket, blob_prefix):
 
 def list_blobs(folder_name):
     client = storage.Client()
-    return client.list_blobs(GCS_ROOT_BUCKET, prefix=folder_name, delimiter='/')
+    if '/' not in folder_name:
+        raise Exception("Folder name must end with a '/'")
+    return client.list_blobs(GCS_ROOT_BUCKET, prefix=folder_name)
 
 def get_full_blob_url(blob):
     return display_full_path_to_gcs(blob.name)
