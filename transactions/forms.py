@@ -15,7 +15,7 @@ class StatementUploadForm(forms.ModelForm):
 class TransactionUpdateForm(forms.ModelForm):
    class Meta:
        model = Transaction
-       exclude = ['statement', 'transaction_date', 'match_id']
+       exclude = ['statement', 'transaction_date', 'match_id','transaction_amount']
 
 class RawInvoiceUpdateForm(forms.ModelForm):
     class Meta:
@@ -37,7 +37,7 @@ class UpdateRevenueForm(forms.ModelForm):
 class UpdateExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        exclude = ['author', 'date_uploaded', 'date_filed','raw_invoice']
+        exclude = ['author', 'date_uploaded', 'date_filed','raw_invoice', 'document_hash']
 
 class CreateRevenueForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.filter(is_current=True).order_by('address__address','suite'))
@@ -46,6 +46,10 @@ class CreateRevenueForm(forms.ModelForm):
         exclude = ['date_uploaded', 'author', 'document_hash']
         #widgets = {'author' :  forms.HiddenInput()}
 
+# class UpdateTransactionForm(forms.ModelForm):
+#     class Meta:
+#         model = Transaction
+#         fields = ['transaction_description']
 
 class UploadDocumentForm(forms.ModelForm):
     address = forms.ModelChoiceField(queryset=Rental_Unit.objects.order_by('address__address','suite'))
