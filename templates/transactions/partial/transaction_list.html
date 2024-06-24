@@ -1,0 +1,45 @@
+{% load humanize %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Transaction Date</th>
+        <th scope="col">Account Number</th>
+        <th scope="col">Statement Type</th>
+        <th scope="col">Transaction Description</th>
+        <th scope="col">Transaction Amount</th>
+        <th scope="col">Matching Document</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in page_obj.object_list %}
+          {% include 'transactions/partial/transaction_row.html'%}
+      {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+  <span class="step-links">
+      {% if page_obj.has_previous %}
+          <a href="#" hx-indicator='#spinner' class="query-trigger" hx-target='#query_result' hx-get="/{{ target_url }}?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">&laquo; first</a>
+          <a href="#" hx-indicator='#spinner' class="query-trigger" hx-target='#query_result' hx-get="/{{ target_url }}?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">previous</a>
+      {% endif %}
+
+      <span class="current">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+          <a href="#" hx-indicator='#spinner' class="query-trigger" hx-target='#query_result' hx-get="/{{ target_url }}?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">next</a>
+          <a href="#" hx-indicator='#spinner' class="query-trigger" hx-target='#query_result' hx-get="/{{ target_url }}?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}{% if request.GET.year %}&year={{ request.GET.year }}{% endif %}">last &raquo;</a>
+      {% endif %}
+  </span>
+</div>
+
+<script>
+  $(function() {
+   $('.query-trigger').off('click'); 
+   $('.query-trigger').on('click', function(){
+      $('#query_result').html("");
+   });
+  });
+</script>

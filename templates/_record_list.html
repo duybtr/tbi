@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block list_content %}
-<form id='filters' class="form-inline mt-2 mt-md-0" hx-target="#query_results">
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-target="#query_result">
   {% csrf_token %}
    <input name="q" id="q" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
    <!-- <label for="order_by"> Sort by: </label>

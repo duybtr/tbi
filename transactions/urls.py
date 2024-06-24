@@ -58,6 +58,10 @@ from .views import (
     delete_expense,
     delete_revenue,
     add_matching_expense,
+    get_transaction_list,
+    get_transaction_edit,
+    get_transaction_row,
+    delete_transaction,
     get_test_form,
     
 )
@@ -120,6 +124,10 @@ urlpatterns = [
     path('<int:expense_pk>/delete_expense', delete_expense, name='delete_expense'),
     path('<int:revenue_pk>/delete_revenue', delete_revenue, name='delete_revenue'),
     path('add_matching_expense/', add_matching_expense, name='add_matching_expense'),
+    path('<int:transaction_pk>/trasaction_edit', get_transaction_edit, name='get_transaction_edit'),
+    path('get_transaction_list', get_transaction_list, name='get_transaction_list'),
+    path('<int:transaction_pk>/transaction_row', get_transaction_row, name='get_transaction_row'),
+    path('<int:transaction_pk>/delete_transaction', delete_transaction, name='delete_transaction'),
     path('test_form', get_test_form, name='test_form'),
 
 ]

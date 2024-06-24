@@ -1,0 +1,23 @@
+{% load humanize %}
+
+<tr hx-target="this" hx-swap="outerHTML">
+   
+    <td>{{ transaction.transaction_date }}</td>
+   
+    <td>{{ transaction.statement.account_number }}</td>
+    <td>{{ transaction.statement.get_statement_type_display }}</td>
+    <td>
+        {{ form.transaction_description }}
+        {{ form.transaction_description.errors }}
+    </td>
+       
+    <td>${{ transaction.transaction_amount|intcomma}}</td>
+    <td>
+        {{ form.document_image }}
+        {{ form.document_image.errors }}
+    </td>
+    
+    {% url 'get_transaction_row' transaction.pk as transaction_submit_url %}
+    {% include 'transactions/partial/buttons/submit_row_button.html' with url=transaction_submit_url %}
+    {% include 'transactions/partial/buttons/cancel_row_button.html' with url=transaction_submit_url %}
+</tr>

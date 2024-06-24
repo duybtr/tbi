@@ -1,12 +1,9 @@
 {% load humanize %}
 {% load widget_tweaks %}
 <tr hx-target="this" hx-swap="outerHTML">
-    {% with record_date_f=expense.record_date|date:"Y-m-d" %}
-    <!-- <td><input type="date" name="record_date" form="expense_{{expense.pk}}" value="{{ record_date_f }}"></td> -->
     <td>{{ form.record_date|add_class:"record_date" }}
         {{ form.record_date.errors}}
     </td>
-    {% endwith %}
     <td>{{ form.address }}
         {{ form.address.errors }}
     </td>

@@ -133,37 +133,13 @@ class StatementDeleteView(LoginRequiredMixin, DeleteView):
 class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
     context_object_name = 'transactions'
-    template_name = 'transactions/transaction_list.html'
+    template_name = 'transactions/transaction_list_ajax.html'
 
-    def add_filters(self):
-        q = Q()
-        query = self.request.GET.get('q')
-        statement_id = self.request.GET.get('statement_id')
-        start_date = self.request.GET.get('start_date')
-        if not start_date:
-            start_date = '2008-01-01' 
-        end_date = self.request.GET.get('end_date')
-        if not end_date:
-            end_date = datetime.now()
-        q = Q(transaction_date__range=[start_date, end_date])
-        if not query is None:
-            try:
-                target_amount = float(query)
-                lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
-                q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
-                q = q | Q(transaction_description__icontains=query)
-            except ValueError:
-                q = q & Q(transaction_description__icontains=query)
-        return q
-
-    def get_queryset(self):
-        q = self.add_filters()
-        return Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
-    
-    def get(self, request, *args, **kwargs):
-        results = self.get_queryset()
-        page_obj = get_paginator_object(results, 50, request)
-        return render(request, self.template_name, {'page_obj': page_obj})
+    def get_context_data(self, **kwargs):
+        context = {}
+        curr_year = datetime.now().year 
+        context['years'] = list(range(curr_year, curr_year-5, -1))
+        return context
 
 class UnmatchedTransactionListView(TransactionListView):
     model = Transaction
@@ -376,81 +352,14 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
         if form.is_valid():
             return HttpResponseRedirect(next_string)  
         return render(request, self.template_name, {'form': form})
-    # def form_valid(self, form):
-    #     # grab previous expense from the database
-    #     # Expense.objects.get(pk=pk)
-    #     previous_expense = Expense.objects.get(pk=self.kwargs.get('pk'))
-    #     updated_expense = form.save(commit=False)
-    #     logging.info('Updating expense: Changed_data {}'.format(previous_expense.pk, form.changed_data))
-    #     updated_expense.author = request.user
-    #     if 'document_image' in form.changed_data:
-    #         logging.info('Document image was changed')
-    #         logging.info('Previous document was {}'.format(previous_expense.document_image.name))
-    #         if updated_expense.document_image.name:
-    #             logging.info('Updating document to {}'.format(updated_expense.document_image.name))
-    #             store_in_gcs([updated_expense.document_image], GCS_ROOT_BUCKET, updated_expense.get_record_folder())
-    #             form.save()
-    #             os.remove(os.path.join(settings.MEDIA_ROOT, updated_expense.document_image.name))
-    #         else:
-    #             logging.info('Document {} was cleared'.format(previous_expense.document_image.name))
-    #         if previous_expense.document_image.name:       
-    #             delete_file(previous_expense.document_image, previous_expense.get_record_folder())
-    #     else:
-    #         form.save()
-    #     return super().form_valid(form)
+  
 
 class RevenueUpdateView(LoginRequiredMixin, UpdateView):
     model = Revenue
     form_class = CreateRevenueForm
     template_name = 'transactions/revenue_edit.html'
     success_url = reverse_lazy('revenue_list')
-    
-    # def post(self, request, *args, **kwargs):
-    #     import pdb; pdb.set_trace()
-    #     form = self.form_class(request.POST, request.FILES)
-    #     next_string = request.POST.get('next', '/')
-    #     if form.is_valid():
-    #         #previous_revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
-    #         updated_revenue = form.save(commit=False)
-    #         logging.info('Updating revenue {}: Changed_data {}'.format(previous_revenue.pk, form.changed_data))
-    #         updated_revenue.author = request.user
-    #         if 'document_image' in form.changed_data:
-    #             logging.info('Document image was changed')
-    #             logging.info('Previous document was {}'.format(previous_revenue.document_image.name))
-    #             if updated_revenue.document_image.name:
-    #                 logging.info('Updating document to {}'.format(updated_revenue.document_image.name))
-    #                 store_in_gcs([updated_revenue.document_image], GCS_ROOT_BUCKET, updated_revenue.get_record_folder())
-    #                 form.save()
-    #                 os.remove(os.path.join(settings.MEDIA_ROOT, updated_revenue.document_image.name))
-    #             else:
-    #                 logging.info('Document {} was cleared'.format(previous_revenue.document_image.name))
-    #             if previous_revenue.document_image.name:       
-    #                 delete_file(previous_revenue.document_image.name, previous_revenue.get_record_folder())
-    #         else: 
-    #             form.save()
-    #         return HttpResponseRedirect(self.success_url)  
-    #     return render(request, self.template_name, {'form': form})
-
-    """def form_valid(self, form):
-        import pdb; pdb.set_trace()
-        # grab previous revenue from the database
-        # Revenue.objects.get(pk=pk)
-        #previous_revenue = Revenue.objects.get(pk=self.kwargs.get('pk'))
-        updated_revenue = form.save(commit=False)
-        logging.info('Updating revenue {}: Changed_data {}'.format(previous_revenue.pk, form.changed_data))
-        if 'document_image' in form.changed_data:
-            logging.info('Document image was changed')
-            logging.info('Previous document was {}'.format(previous_revenue.document_image.name))
-            if updated_revenue.document_image.name:
-                logging.info('Updating document to {}'.format(updated_revenue.document_image.name))
-                store_in_gcs([updated_revenue.document_image], GCS_ROOT_BUCKET, updated_revenue.get_record_folder())
-                form.save()
-                os.remove(os.path.join(settings.MEDIA_ROOT, updated_revenue.document_image.name))
-            else:
-                logging.info('Document {} was cleared'.format(previous_revenue.document_image.name))
-            if previous_revenue.document_image.name:       
-                delete_file(previous_revenue.document_image.name, previous_revenue.get_record_folder())
-        return super().form_valid(form) """
+ 
 
 class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     model = Expense
@@ -739,8 +648,10 @@ def get_revenue_list(request):
         q = q & Q(record_date__gte = start_date)
     if end_date:
         q = q & Q(record_date__lte = end_date)
-    if current_year != 'all':
-        q = q & Q(record_date__year__gte = datetime.now().year) 
+    if not current_year or current_year == 'all':
+        q = q & Q(record_date__year__lte = datetime.now().year)
+    else:
+        q = q & Q(record_date__year = current_year)
     if order_by is None:
         order_by = '-record_date'
     if address and address != 'all':
@@ -998,6 +909,72 @@ def get_expense_list(request):
     context['page_obj'] = page_obj
     context['target_url'] =  'get_expense_list'
     return render(request, 'transactions/partial/expense_list.html', context)
+
+def get_transaction_list(request):
+    q = Q()
+    query = request.GET.get('q')
+    statement_id = request.GET.get('statement_id')
+    start_date = request.GET.get('start_date')
+    order_by = request.GET.get('order_by')
+    current_year = request.GET.get('year')
+    if not start_date:
+        start_date = '2008-01-01' 
+    end_date = request.GET.get('end_date')
+    if not end_date:
+        end_date = datetime.now()
+    q = Q(transaction_date__range=[start_date, end_date])
+    if not current_year or current_year == 'all':
+        q = q & Q(transaction_date__year__lte = datetime.now().year)
+    else:
+        q = q & Q(transaction_date__year = current_year)
+
+    if not query is None:
+        try:
+            target_amount = float(query)
+            lower,upper = sorted((0.9*target_amount, 1.1*target_amount))
+            q = q & Q(transaction_amount__gte=lower) & Q(transaction_amount__lte=upper)
+            q = q | Q(transaction_description__icontains=query)
+        except ValueError:
+            q = q & Q(transaction_description__icontains=query)
+    if order_by is None:
+        order_by = '-transaction_date'
+    queryset = Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
+    context = {}
+    page_obj = get_paginator_object(queryset, 50, request)
+    context['page_obj'] = page_obj
+    context['target_url'] = 'get_transaction_list'
+    return render(request, 'transactions/partial/transaction_list.html', context)
+
+def get_transaction_edit(request, transaction_pk):
+    transaction = Transaction.objects.get(pk=transaction_pk)
+    context = {}
+    context['transaction'] = transaction
+    context['form'] = TransactionUpdateForm(initial={
+        'transaction_description' : transaction.transaction_description
+    })
+    
+    return render(request, 'transactions/partial/transaction_edit.html', context)
+
+@require_http_methods(["GET", "POST"])
+def get_transaction_row(request, transaction_pk):
+    context = {}
+    transaction = Transaction.objects.get(pk=transaction_pk)
+    if request.method == 'POST':
+        #previous_invoice = exnnpense.document_image.name
+        form = TransactionUpdateForm(request.POST, instance=transaction)
+        context['form'] = form
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, 'transactions/partial/transaction_edit.html', context)
+    context['transaction'] = transaction
+    return render(request, 'transactions/partial/transaction_row.html', context)
+
+def delete_transaction(request, transaction_pk):
+    context = {}
+    transaction = Transaction.objects.get(pk=transaction_pk)
+    transaction.delete()
+    return HttpResponse()
 
 def add_matching_expense(request):
     context = {}

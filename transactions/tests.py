@@ -3,7 +3,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse, resolve # new
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .views import HomePageView, statement_upload # new
+from .views import HomePageView, StatementCreateView # new
 from .models import Transaction, Expense, Revenue, Property, Rental_Unit
 from datetime import datetime
 from accounts.models import CustomUser
@@ -53,7 +53,7 @@ class CsvUploadTests(SimpleTestCase):
         self.assertTemplateUsed(self.response, 'transactions/statement_upload.html')
     
     def test_csvupload_url_resolves_statementuploadview(self):
-        view = resolve('/upload_csv/')  
+        view = resolve('/upload_statement/')  
         self.assertEqual(
             view.func.__name__,
             statement_upload.__name__

@@ -1,0 +1,24 @@
+{% load humanize %}
+<tr>
+    <td>{{ transaction.transaction_date }}</td>
+    <td>{{ transaction.statement.account_number }}</td>
+    <td>{{ transaction.statement.get_statement_type_display }}</td>
+    <td style="word-wrap: break-word;min-width: 160px;max-width: 160px;">{{ transaction.transaction_description }}</td>
+    <td>${{ transaction.transaction_amount|intcomma}}</td>
+    {% if transaction.match_id == 0 %}
+      {% if transaction.transaction_amount < 0 %}
+            <td><a href="{% url 'matching_expense_list' transaction.pk %}">Match</a></td>
+      {% else %}
+            <td><a href="{% url 'matching_revenue_list' transaction.pk %}">Match</a></td>
+      {% endif %}
+    {% else %}
+    <td><a href="{{ transaction.matching_record.get_full_path_to_gcs }}">{{ transaction.matching_record.document_image.name }}</a></td>
+    {% endif %}
+    <!-- <td><a href="{% url 'transaction_edit' transaction.pk %}">Edit</a></td>
+    <td><a href="{% url 'transaction_delete' transaction.pk %}">Delete</a></td> -->
+
+    {% url 'get_transaction_edit' transaction.pk as transaction_edit_url %}
+    {% include 'transactions/partial/buttons/edit_row_button.html' with url=transaction_edit_url %}
+    {% url 'delete_transaction' transaction.pk as transaction_delete_url %}
+    {% include 'transactions/partial/buttons/delete_row_button.html' with url=transaction_delete_url %}
+</tr>

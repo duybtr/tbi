@@ -1,0 +1,36 @@
+{% extends '_base.html' %}
+{% load humanize %}
+
+{% block content %}
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_result" hx-get="/get_transaction_list" hx-indicator="#spinner">
+  <input name="q" class="search form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+  <br/>
+  <label for="start_date">Start Date:</label>
+  <input type="date" id="start_date" name="start_date" min="2018-01-01">&nbsp;
+  <label for="end_date">End Date:</label>
+  <input type="date" id="end_date" name="end_date" min="2018-01-01">
+  <label for="year"> Year: </label>
+  <select name="year" id="year">
+   <option value="all">All</option>
+   {% for year in years %}
+   <option value="{{ year }}">{{ year }}</option>
+   {% endfor %}
+ </select>
+  <button class="btn btn-info ml-2 query-trigger" type="submit">Go</button>
+  
+</form>
+
+
+<div class="d-flex justify-content-center">
+  <div id="spinner" class="spinner-border htmx-indicator" role="status">
+    <span class="sr-only"></span>
+  </div>
+</div>
+
+<div id="query_result"></div> 
+
+
+
+{% endblock content %}
+
+
