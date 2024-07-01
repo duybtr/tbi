@@ -142,9 +142,6 @@ class TransactionListView(LoginRequiredMixin, ListView):
         return context
 
 class UnmatchedTransactionListView(TransactionListView):
-    model = Transaction
-    context_object_name = 'transactions'
-    template_name = 'transactions/transaction_list_ajax.html'
     def add_filters(self):
         q = super().add_filters()
         q = q & Q(match_id=0) & Q(is_ignored=False)
