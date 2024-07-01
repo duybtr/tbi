@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block content %}
-<form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_result" hx-get="/get_transaction_list" hx-indicator="#spinner">
+<form id='filters' class="form-inline mt-2 mt-md-0" hx-trigger="load, submit" hx-target="#query_result" hx-get="{{ target_url }}" hx-indicator="#spinner">
   <input name="q" class="search form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
   <br/>
   <label for="start_date">Start Date:</label>

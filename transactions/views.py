@@ -139,13 +139,14 @@ class TransactionListView(LoginRequiredMixin, ListView):
         context = {}
         curr_year = datetime.now().year 
         context['years'] = list(range(curr_year, curr_year-5, -1))
+        context['target_url'] = '/get_transaction_list' # for the inital ajax call
         return context
 
 class UnmatchedTransactionListView(TransactionListView):
-    def add_filters(self):
-        q = super().add_filters()
-        q = q & Q(match_id=0) & Q(is_ignored=False)
-        return q
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['target_url'] = '/get_unmatched_transaction_list' # for the inital ajax call
+        return context
 
 class TransactionUpdateView(LoginRequiredMixin, UpdateView):
     model = Transaction 
@@ -907,12 +908,12 @@ def get_expense_list(request):
     context['target_url'] =  'get_expense_list'
     return render(request, 'transactions/partial/expense_list.html', context)
 
-def get_transaction_list(request):
+def setup_transaction_filters(request):
     q = Q()
     query = request.GET.get('q')
     statement_id = request.GET.get('statement_id')
     start_date = request.GET.get('start_date')
-    order_by = request.GET.get('order_by')
+    
     current_year = request.GET.get('year')
     if not start_date:
         start_date = '2008-01-01' 
@@ -933,13 +934,32 @@ def get_transaction_list(request):
             q = q | Q(transaction_description__icontains=query)
         except ValueError:
             q = q & Q(transaction_description__icontains=query)
+    return q
+
+def get_transaction_list(request):
+    order_by = request.GET.get('order_by')
+    q = setup_transaction_filters(request)
     if order_by is None:
         order_by = '-transaction_date'
     queryset = Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
     context = {}
     page_obj = get_paginator_object(queryset, 50, request)
     context['page_obj'] = page_obj
-    context['target_url'] = 'get_transaction_list'
+    context['target_url'] = '/get_transaction_list' # for pagination
+    return render(request, 'transactions/partial/transaction_list.html', context)
+
+def get_unmatched_transaction_list(request):
+    order_by = request.GET.get('order_by')
+    q = setup_transaction_filters(request)
+    q = q & Q(match_id=0) 
+    q = q & Q(is_ignored=False)
+    if order_by is None:
+        order_by = '-transaction_date'
+    queryset = Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
+    context = {}
+    page_obj = get_paginator_object(queryset, 50, request)
+    context['page_obj'] = page_obj
+    context['target_url'] = '/get_unmatched_transaction_list' # for pagination
     return render(request, 'transactions/partial/transaction_list.html', context)
 
 def get_transaction_edit(request, transaction_pk):
