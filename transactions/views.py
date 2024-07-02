@@ -951,8 +951,7 @@ def get_transaction_list(request):
 def get_unmatched_transaction_list(request):
     order_by = request.GET.get('order_by')
     q = setup_transaction_filters(request)
-    q = q & Q(match_id=0) 
-    q = q & Q(is_ignored=False)
+    q = q & Q(match_id=0) & Q(is_ignored=False) & Q(transaction_amount__lt=0)
     if order_by is None:
         order_by = '-transaction_date'
     queryset = Transaction.objects.filter(q).order_by('-transaction_date', 'statement__statement_type', 'statement__account_number')
