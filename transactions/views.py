@@ -967,23 +967,25 @@ def get_transaction_edit(request, transaction_pk):
     context['transaction'] = transaction
     context['form'] = TransactionUpdateForm(initial={
         'transaction_description' : transaction.transaction_description
-    })
-    
+    })    
     return render(request, 'transactions/partial/transaction_edit.html', context)
 
 @require_http_methods(["GET", "POST"])
 def get_transaction_row(request, transaction_pk):
     context = {}
     transaction = Transaction.objects.get(pk=transaction_pk)
+    context['transaction'] = transaction
     if request.method == 'POST':
-        #previous_invoice = exnnpense.document_image.name
+        if 'unmatch_invoice' in request.POST.keys() and request.POST['unmatch_invoice'] == 'on':
+            Transaction.objects.filter(pk=transaction_pk).update(match_id=0)
+            transaction.refresh_from_db()
+
         form = TransactionUpdateForm(request.POST, instance=transaction)
         context['form'] = form
         if form.is_valid():
             form.save()
         else:
             return render(request, 'transactions/partial/transaction_edit.html', context)
-    context['transaction'] = transaction
     return render(request, 'transactions/partial/transaction_row.html', context)
 
 def delete_transaction(request, transaction_pk):

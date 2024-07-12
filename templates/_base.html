@@ -137,10 +137,10 @@
                 <a href="{{ revenue_url }}" class="nav-link text-white {% if request.path == revenue_url %} active {% else %} '' {% endif %}" data-toggle="pill">
                     Revenues
                 </a>
-                {% url 'transaction_list' as transaction_url %}
+                <!-- {% url 'transaction_list' as transaction_url %}
                 <a href="{{ transaction_url }}" class="nav-link text-white {% if request.path == transaction_url %} active {% else %} '' {% endif %} " data-toggle="pill">
                     Transactions
-                </a>
+                </a> -->
 
                 {% url 'get_tax_report' as tax_report_url %}
                 <a href="{{ tax_report_url }}" class="nav-link text-white {% if request.path == tax_report_url %} active {% else %} '' {% endif %} " data-toggle="pill">

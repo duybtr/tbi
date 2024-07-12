@@ -12,10 +12,16 @@
     </td>
        
     <td>${{ transaction.transaction_amount|intcomma}}</td>
-    <td>
-        {{ form.document_image }}
-        {{ form.document_image.errors }}
+    
+    <td> 
+        {% if transaction.match_id != 0 %}
+        <a href="{{ transaction.matching_record.get_full_path_to_gcs }}" target="_blank">{{ transaction.matching_record.document_image.name }}</a>
+        <br />
+        <input type="checkbox" id="unmatch_invoice" name="unmatch_invoice" />
+        <label for="unmatch_invoice">Unmatch</label>
+        {% endif %}
     </td>
+    
     
     {% url 'get_transaction_row' transaction.pk as transaction_submit_url %}
     {% include 'transactions/partial/buttons/submit_row_button.html' with url=transaction_submit_url %}
