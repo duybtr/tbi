@@ -33,3 +33,6 @@ jobs:
     - name: Run Tests
       run: |
         python manage.py test
+permissions:
+  contents: 'read'
+  id-token: 'write'
