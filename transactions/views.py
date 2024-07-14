@@ -767,6 +767,13 @@ def add_revenue_submit(request):
             return render(request, 'transactions/partial/add_revenue.html', context)
     return render(request, 'transactions/partial/revenue_row.html', context)
 
+def store_expense_invoice(expense):
+    tmp_file_name = format_for_storage(expense.document_image.name)
+    full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
+    with open(full_file_path, "rb") as current_file:
+        store_in_gcs([current_file], GCS_ROOT_BUCKET, expense.get_record_folder())
+    os.remove(os.path.join(settings.MEDIA_ROOT, expense.document_image.name))
+
 def add_expense_submit(request):
     context = {}
     if request.method == 'POST':
@@ -777,11 +784,7 @@ def add_expense_submit(request):
             form.save() 
             context['expense'] = expense
             if expense.document_image.name:
-                tmp_file_name = format_for_storage(expense.document_image.name)
-                full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
-                with open(full_file_path, "rb") as current_file:
-                    store_in_gcs([current_file], GCS_ROOT_BUCKET, expense.get_record_folder())
-                os.remove(os.path.join(settings.MEDIA_ROOT, expense.document_image.name))
+                store_expense_invoice(expense)
         else:
             return render(request, 'transactions/partial/add_expense.html', context)
     return render(request, 'transactions/partial/expense_row.html', context)
@@ -809,11 +812,7 @@ def get_expense_row(request, expense_pk):
         if form.is_valid():
             form.save()
             if len(request.FILES) > 0:
-                tmp_file_name = format_for_storage(expense.document_image.name)
-                full_file_path = settings.MEDIA_ROOT + '/' + tmp_file_name
-                with open(full_file_path, "rb") as current_file:
-                    store_in_gcs([current_file], GCS_ROOT_BUCKET, expense.get_record_folder())
-                os.remove(os.path.join(settings.MEDIA_ROOT, expense.document_image.name))
+                store_expense_invoice(expense)
                 delete_file(previous_invoice, expense.get_record_folder())    
         else:
             return render(request, 'transactions/partial/expense_edit.html', context)
@@ -833,14 +832,17 @@ def initialize_matching_expense_form(request):
 @require_http_methods(["GET", "POST"])
 # this method creating a new expense and match it with the target trasaction
 def add_matching_expense_submit(request):
+    import pdb; pdb.set_trace()
     context = {}
     transaction_pk = request.session.get('transaction_pk', None)
     if request.method == 'POST':
-        form = CreateExpenseForm(request.POST)
+        form = CreateExpenseForm(request.POST, request.FILES)
         if form.is_valid():
             expense = form.save(commit=False)
             expense.author = request.user
             form.save()
+            if len(request.FILES) > 0:
+                store_expense_invoice(expense)
             Transaction.objects.filter(pk=transaction_pk).update(match_id=expense.pk)
         else:
             context['form'] = form
