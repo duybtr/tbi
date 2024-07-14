@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: auth
-      uses: google-github-actions/auth@v2.1.2
+      uses: google-github-actions/auth@v2.0.0
       with:
         workload_identity_provider: 'projects/334572487877/locations/global/workloadIdentityPools/github-actions-pool/providers/github'
         service_account: 'wif-732@tbi-finance.iam.gserviceaccount.com'      
@@ -33,3 +33,6 @@ jobs:
     - name: Run Tests
       run: |
         python manage.py test
+permissions:
+  contents: 'read'
+  id-token: 'write'
