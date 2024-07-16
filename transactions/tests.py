@@ -19,7 +19,6 @@ class HomepageTests(SimpleTestCase):
 
     # template tests
     def test_homepage_status_code(self):
-        import pdb; pdb.set_trace()
         self.assertEqual(self.response.status_code, 200)
 
     # def test_homepage_template(self):
