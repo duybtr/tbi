@@ -10,7 +10,7 @@
    
     
     {% if failed_uploads|length > 0 %}
-    <h2> The following files failed to upload:</h2>
+    <h2> Duplicated invoices found for the following files:</h2>
     {% for ffile in failed_uploads %}
     <p style="color:red">{{ ffile }}</p>
     {% endfor %}
