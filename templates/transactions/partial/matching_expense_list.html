@@ -1,0 +1,20 @@
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Expense Date</th>
+        <th scope="col">Address</th>
+        <th scope="col">Expense Type</th>
+        <th scope="col">Expense Amount</th>
+        <th scope="col">Invoice Image</th>
+        <th scope="col">Note </th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if object_list|length > 0 %}
+        {% for expense in object_list %}
+          {% include 'transactions/partial/matching_expense_row.html' with expense=expense target_transaction=target_transaction  %}
+        {% endfor %}
+      {% endif %}
+    </tbody>
+</table>

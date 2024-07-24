@@ -668,6 +668,7 @@ def get_revenue_list(request):
     context = {}
     page_obj = get_paginator_object(results, 50, request)
     context['page_obj'] = page_obj
+    context['target_url'] = 'get_revenue_list'
     return render(request, 'transactions/partial/revenue_list.html', context)       
 def get_expense_edit(request, expense_pk):
     expense = Expense.objects.get(pk=expense_pk)
